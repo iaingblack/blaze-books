@@ -3,9 +3,14 @@ import Foundation
 /// Central state machine orchestrating RSVP display and TTS speech with dual-mode operation.
 ///
 /// ReadingCoordinator bridges the raw engines (RSVPEngine, TTSService) with the user-facing reading views.
-/// It supports two modes:
+/// It supports two reading modes (`.rsvp` and `.page`) with two drive modes each:
 /// - **Timer mode (TTS off):** RSVPEngine drives word advancement at exact configured WPM
 /// - **TTS mode (TTS on):** TTSService speech dictates word advancement; WPM is approximate
+///
+/// **Page mode specifics:**
+/// - With TTS on: TTS drives word advancement via onWordBoundary callbacks (same as RSVP mode).
+///   Page mode views observe `highlightedWordIndex` to show word highlighting.
+/// - With TTS off: No timer drives word advancement. User reads at their own pace (passive scrolling).
 ///
 /// **Key behaviors (locked decisions from CONTEXT.md):**
 /// 1. TTS drives everything when active -- speech dictates word advancement, WPM becomes approximate
@@ -14,11 +19,15 @@ import Foundation
 /// 4. Chapter auto-advance with brief pause at chapter boundaries
 /// 5. Pause freezes last word on screen
 /// 6. Slider snaps to actual capped WPM (shows reality)
+/// 7. Mode switch preserves currentWordIndex across RSVP/page transitions (READ-03)
+/// 8. setWPM updates engine state immediately; commitWPMChange() debounces TTS restart (NAV-01)
 @Observable
 final class ReadingCoordinator {
 
     // MARK: - Observable State (drives SwiftUI views)
 
+    /// Current reading mode (page or RSVP). Defaults to RSVP since that's the existing behavior.
+    var readingMode: ReadingMode = .rsvp
     /// The word currently displayed in the RSVP view.
     var currentWord: ORPWord?
     /// Whether reading is active (either Timer or TTS mode).
@@ -39,6 +48,15 @@ final class ReadingCoordinator {
     var totalWordCount: Int = 0
     /// Index of the current chapter (zero-based).
     var currentChapterIndex: Int = 0
+
+    /// The word index currently highlighted in page mode (driven by TTS callbacks).
+    ///
+    /// Returns `currentWordIndex` when playing, `nil` when paused. Page mode views observe this
+    /// to show/hide word highlighting. When nil (paused), no word is highlighted in page mode
+    /// (per Research recommendation: no "frozen highlight" when TTS is off).
+    var highlightedWordIndex: Int? {
+        isPlaying ? currentWordIndex : nil
+    }
 
     // MARK: - Private State
 
@@ -127,16 +145,20 @@ final class ReadingCoordinator {
     /// Starts playback in the current mode (Timer or TTS).
     ///
     /// - **TTS on:** Starts speech from the current word index; TTS word-boundary callbacks
-    ///   drive RSVP display updates.
-    /// - **TTS off:** Starts RSVPEngine timer; subscribes to its currentWord changes.
+    ///   drive RSVP/page display updates.
+    /// - **TTS off, RSVP mode:** Starts RSVPEngine timer; subscribes to its currentWord changes.
+    /// - **TTS off, page mode:** No-op for timer -- page mode without TTS is passive scrolling
+    ///   (user reads at their own pace; no RSVP timer needed).
     func play() {
         if isTTSEnabled {
             ttsService.speak(fromWordIndex: currentWordIndex)
-        } else {
+        } else if readingMode == .rsvp {
+            // RSVP mode without TTS: RSVPEngine timer drives word advancement
             rsvpEngine.seekTo(index: currentWordIndex)
             rsvpEngine.play()
             startRSVPObservation()
         }
+        // Page mode without TTS: no timer needed (passive scroll reading)
         isPlaying = true
     }
 
@@ -179,9 +201,13 @@ final class ReadingCoordinator {
 
     /// Sets the user's requested WPM, applying speed cap for the current voice.
     ///
+    /// Called continuously during slider drag. Updates engine state immediately but does NOT
+    /// restart TTS (avoids audio stuttering during slider drag per Research Pitfall 5).
+    /// Call `commitWPMChange()` when the slider drag ends to restart TTS with the new rate.
+    ///
     /// Clamps to 100-500 range. Queries SpeedCapService for effective WPM based on
     /// the current voice. Updates effectiveWPM, isSpeedCapped, speedCapMessage.
-    /// Applies the effective WPM to both engines.
+    /// Applies the effective WPM to the RSVPEngine timer immediately.
     ///
     /// Locked decision: slider snaps to actual capped WPM (shows reality).
     ///
@@ -190,10 +216,52 @@ final class ReadingCoordinator {
         currentWPM = max(100, min(500, wpm))
         applySpeedCap()
 
-        // Apply effective WPM to engines
+        // Apply effective WPM to RSVPEngine immediately (cheap, no restart needed)
         rsvpEngine.setWPM(effectiveWPM)
+    }
+
+    /// Commits a WPM change by restarting TTS from the current word index with the new rate.
+    ///
+    /// Called when the WPM slider drag ends (onEditingChanged = false). This is the debounce
+    /// point that prevents audio stuttering during continuous slider drag (Research Pitfall 5).
+    ///
+    /// Only restarts TTS if it's currently enabled and playing. Silent RSVP mode doesn't need
+    /// this -- RSVPEngine timer updates are applied immediately in `setWPM`.
+    func commitWPMChange() {
+        guard isTTSEnabled, isPlaying else { return }
+        let resumeIndex = currentWordIndex
+        ttsService.stop()
         if let voiceId = ttsService.currentVoiceIdentifier {
             ttsService.setRate(speedCapService.wpmToRate(effectiveWPM, forVoice: voiceId))
+        }
+        ttsService.speak(fromWordIndex: resumeIndex)
+    }
+
+    /// Switches between RSVP and page reading modes, preserving word position.
+    ///
+    /// Saves the current word index, stops both engines, switches mode, then restores
+    /// the exact word position. If TTS was playing, resumes playback in the new mode.
+    /// This ensures READ-03: position is preserved across mode switches.
+    ///
+    /// - Parameter newMode: The reading mode to switch to.
+    func switchMode(to newMode: ReadingMode) {
+        guard newMode != readingMode else { return }
+
+        let savedIndex = currentWordIndex
+        let wasTTSPlaying = isPlaying && isTTSEnabled
+
+        // Stop current mode
+        stop()
+
+        readingMode = newMode
+
+        // Restore position
+        currentWordIndex = savedIndex
+        currentWord = rsvpEngine.word(at: savedIndex)
+
+        // If TTS was playing, resume from same position in new mode
+        if wasTTSPlaying {
+            play()
         }
     }
 
