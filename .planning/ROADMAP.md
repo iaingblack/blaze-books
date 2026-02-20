@@ -12,7 +12,7 @@ Blaze Books delivers an iOS reading app where synchronized text-to-speech tracks
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Data models, EPUB parsing, word tokenization, and file import
+- [x] **Phase 1: Foundation** - Data models, EPUB parsing, word tokenization, and file import
 - [ ] **Phase 2: Reading Engine** - RSVP engine, TTS service, synchronization coordinator, and voice management
 - [ ] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
 - [ ] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
@@ -36,8 +36,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Xcode project setup, SwiftData models with VersionedSchema, Readium SPM dependency
-- [ ] 01-02-PLAN.md — EPUB import service, Readium parser service, word tokenizer
-- [ ] 01-03-PLAN.md — Library grid view, reading view with position tracking, end-to-end wiring
+- [x] 01-02-PLAN.md — EPUB import service, Readium parser service, word tokenizer
+- [x] 01-03-PLAN.md — Library grid view, reading view with position tracking, end-to-end wiring
 
 ### Phase 2: Reading Engine
 **Goal**: The synchronization engine keeps TTS audio locked to visual word display, with voice selection and graceful speed capping
@@ -135,7 +135,7 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/3 | In Progress | - |
+| 1. Foundation | 3/3 | Complete | 2026-02-20 |
 | 2. Reading Engine | 0/3 | Not started | - |
 | 3. Reading Experience | 0/2 | Not started | - |
 | 4. Navigation & Appearance | 0/2 | Not started | - |

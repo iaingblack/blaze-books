@@ -9,28 +9,28 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 1 of 7 (Foundation)
-Plan: 2 of 3 in current phase
-Status: Executing
-Last activity: 2026-02-20 -- Completed 01-02-PLAN.md (EPUB import pipeline)
+Phase: 2 of 7 (Reading Engine)
+Plan: 0 of 3 in current phase
+Status: Phase 1 Complete -- Ready for Phase 2
+Last activity: 2026-02-20 -- Completed 01-03-PLAN.md (UI views and end-to-end wiring)
 
-Progress: [██░░░░░░░░] 14%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 6 min
-- Total execution time: 0.2 hours
+- Total plans completed: 3
+- Average duration: ~8 min
+- Total execution time: ~0.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Foundation | 2 | 12 min | 6 min |
+| 1. Foundation | 3 | ~24 min | ~8 min |
 
 **Recent Trend:**
-- Last 5 plans: 7m, 5m
+- Last 5 plans: 7m, 5m, multi-session
 - Trend: --
 
 *Updated after each plan completion*
@@ -54,6 +54,11 @@ Recent decisions affecting current work:
 - [01-02]: Failed chapters produce placeholder text with parseError flag, not crashes
 - [01-02]: WordTokenizer pinned to NLLanguage.english for deterministic tokenization
 - [01-02]: EPUBImportService is @MainActor (UI state); EPUBParserService is not (async parsing)
+- [01-03]: Used readingOrder instead of tableOfContents for chapter text extraction -- readingOrder is the content spine
+- [01-03]: ScrollView .id(chapterIndex) forces complete rebuild on chapter navigation (SwiftUI caching workaround)
+- [01-03]: Strip <head> blocks and heading tags from HTML before text extraction for clean chapter content
+- [01-03]: Deterministic placeholder cover colors from DJB2 hash of book title
+- [01-03]: ReadingPositionService debounces saves to 2-second intervals to avoid excessive SwiftData writes
 
 ### Pending Todos
 
@@ -68,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 01-02-PLAN.md
+Stopped at: Completed 01-03-PLAN.md -- Phase 1 Foundation complete
 Resume file: None
