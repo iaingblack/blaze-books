@@ -310,8 +310,8 @@ struct ReadingView: View {
                     .filter { !$0.isEmpty }
             }
 
-            paragraphs = rawParagraphs.enumerated().map { index, text in
-                IdentifiedParagraph(id: "p-\(index)", text: text)
+            paragraphs = rawParagraphs.enumerated().map { pIndex, text in
+                IdentifiedParagraph(id: "ch\(currentChapterIndex)-p-\(pIndex)", text: text)
             }
         } else {
             paragraphs = []
