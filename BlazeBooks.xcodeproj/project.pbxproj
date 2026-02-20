@@ -7,14 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AEA5421B2F48BF9B005912B1 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = A1000100 /* ReadiumShared */; };
+		AEA5421C2F48BF9B005912B1 /* ReadiumStreamer in Frameworks */ = {isa = PBXBuildFile; productRef = A1000101 /* ReadiumStreamer */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A1000001 /* BlazeBooks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlazeBooks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A1000010 /* BlazeBooks */ = {
@@ -29,13 +28,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEA5421C2F48BF9B005912B1 /* ReadiumStreamer in Frameworks */,
+				AEA5421B2F48BF9B005912B1 /* ReadiumShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A1000030 /* root */ = {
+		A1000030 = {
 			isa = PBXGroup;
 			children = (
 				A1000010 /* BlazeBooks */,
@@ -100,7 +101,7 @@
 				en,
 				Base,
 			);
-			mainGroup = A1000030 /* root */;
+			mainGroup = A1000030;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A10000F0 /* XCRemoteSwiftPackageReference "swift-toolkit" */,
@@ -314,20 +315,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A10000A0 /* Build configuration list for PBXProject "BlazeBooks" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A10000B0 /* Debug */,
-				A10000C0 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		A1000060 /* Build configuration list for PBXNativeTarget "BlazeBooks" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A10000D0 /* Debug */,
 				A10000E0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000A0 /* Build configuration list for PBXProject "BlazeBooks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000B0 /* Debug */,
+				A10000C0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -357,7 +358,6 @@
 			productName = ReadiumStreamer;
 		};
 /* End XCSwiftPackageProductDependency section */
-
 	};
 	rootObject = A1000090 /* Project object */;
 }

@@ -5,7 +5,7 @@
 An app that can helps you read ebooks in a tracked word mode and can also read the words aloud at the same pace.
 
 ## What it is
-It is an IOS app which will use Rapid Serial Visual Presentation (RSVP) to display one word at a time to let you read the book at advanced speeds. Or display the page in general and let you follow the highlighted word. It will also have an option to turn on voice mode where the book is also read at you using Apple Voice technology. Users should be able to pull down classic books or upload their own books.
+It is an IOS app, for iphone and ipad, which will use Rapid Serial Visual Presentation (RSVP) to display one word at a time to let you read the book at advanced speeds. Or display the page in general and let you follow the highlighted word. It will also have an option to turn on voice mode where the book is also read at you using Apple Voice technology. Users should be able to pull down classic books or upload their own books.
 
 ## The Problem
 Lots of RSVP and epub reader apps exist, but none have a voiceover mode. The reading and listening at the same time is said to enhance retention and focus when reading. Other apps have audiobook features but these are community read, require donwloading, are often poor, and so an artifical voice could be better.
