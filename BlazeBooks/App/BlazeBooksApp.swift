@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct BlazeBooksApp: App {
     let modelContainer: ModelContainer
+    @State private var importService = EPUBImportService()
 
     init() {
         do {
@@ -23,6 +24,7 @@ struct BlazeBooksApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(importService)
         }
         .modelContainer(modelContainer)
     }
