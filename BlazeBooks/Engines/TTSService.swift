@@ -36,6 +36,10 @@ final class TTSService {
     private var currentSentenceIndex: Int = 0
     @ObservationIgnored
     private var selectedVoiceIdentifier: String?
+
+    /// Public read-only accessor for the currently selected voice identifier.
+    /// Used by ReadingCoordinator to query speed cap for the active voice.
+    var currentVoiceIdentifier: String? { selectedVoiceIdentifier }
     @ObservationIgnored
     private var speechRate: Float = AVSpeechUtteranceDefaultSpeechRate
 
