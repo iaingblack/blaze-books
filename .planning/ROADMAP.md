@@ -32,12 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A malformed EPUB (bad XML, HTML entities) imports without crashing and shows readable text
   4. An imported book works fully offline after initial import (no network calls during reading)
   5. App remembers reading position per book across app restarts
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Xcode project setup, SwiftData models with VersionedSchema, Readium SPM dependency
+- [ ] 01-02-PLAN.md — EPUB import service, Readium parser service, word tokenizer
+- [ ] 01-03-PLAN.md — Library grid view, reading view with position tracking, end-to-end wiring
 
 ### Phase 2: Reading Engine
 **Goal**: The synchronization engine keeps TTS audio locked to visual word display, with voice selection and graceful speed capping
