@@ -42,7 +42,7 @@ struct RSVPDisplayView: View {
                     HStack(spacing: 0) {
                         // Before ORP: right-aligned in left half
                         Text(word.beforeORP)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.white)
                             .frame(width: halfWidth - halfChar, alignment: .trailing)
 
                         // ORP character: accent color, bold, fixed center position
@@ -53,7 +53,7 @@ struct RSVPDisplayView: View {
 
                         // After ORP: left-aligned in right half
                         Text(word.afterORP)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.white)
                             .frame(width: halfWidth - halfChar, alignment: .leading)
                     }
                     .font(.system(size: 36, weight: .medium, design: .monospaced))
