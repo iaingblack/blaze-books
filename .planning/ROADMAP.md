@@ -49,12 +49,12 @@ Plans:
   3. When WPM exceeds the synthesizer's capability, voice speed caps gracefully and the user is informed rather than hearing garbled audio
   4. User can choose from available Apple built-in voices and hear a preview
   5. User can download enhanced Apple voice packs from within the app's settings
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — RSVPEngine with ORP positioning and TTSService with sentence-level chunking
+- [ ] 02-02-PLAN.md — ReadingCoordinator, SpeedCapService, and VoiceManager
+- [ ] 02-03-PLAN.md — RSVP display view, voice picker, speed cap banner, and ReadingView integration
 
 ### Phase 3: Reading Experience
 **Goal**: Users have two complete reading modes (RSVP and page) with synchronized TTS and can switch between them without losing their place
