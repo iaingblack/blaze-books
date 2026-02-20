@@ -239,20 +239,23 @@ final class ReadingCoordinator {
 
     /// Switches between RSVP and page reading modes, preserving word position.
     ///
-    /// Saves the current word index, stops both engines, switches mode, then restores
+    /// Saves the current word index, stops both engines, sets the new mode, then restores
     /// the exact word position. If TTS was playing, resumes playback in the new mode.
     /// This ensures READ-03: position is preserved across mode switches.
     ///
+    /// **Note:** When called from a SwiftUI Picker binding, `readingMode` may already
+    /// be set to `newMode` (the Picker sets it before `onChange` fires). This method
+    /// handles that gracefully by always performing the stop/restore/resume cycle.
+    ///
     /// - Parameter newMode: The reading mode to switch to.
     func switchMode(to newMode: ReadingMode) {
-        guard newMode != readingMode else { return }
-
         let savedIndex = currentWordIndex
         let wasTTSPlaying = isPlaying && isTTSEnabled
 
-        // Stop current mode
+        // Stop current mode engines
         stop()
 
+        // Set mode (may be redundant if Picker binding already set it, but safe)
         readingMode = newMode
 
         // Restore position
