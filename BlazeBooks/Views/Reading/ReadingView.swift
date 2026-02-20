@@ -292,11 +292,23 @@ struct ReadingView: View {
             chapter.text == "This chapter could not be displayed"
 
         if !isBrokenChapter {
-            // Split text into paragraphs
-            let rawParagraphs = chapter.text
-                .components(separatedBy: "\n\n")
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
+            // Split text into paragraphs — handle various line ending styles
+            // EPUBs may use \n\n, \r\n\r\n, or just \n for paragraph breaks
+            let normalizedText = chapter.text
+                .replacingOccurrences(of: "\r\n", with: "\n")
+            let rawParagraphs: [String]
+            if normalizedText.contains("\n\n") {
+                rawParagraphs = normalizedText
+                    .components(separatedBy: "\n\n")
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+            } else {
+                // Single newline separated — treat each line as a paragraph
+                rawParagraphs = normalizedText
+                    .components(separatedBy: "\n")
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+            }
 
             paragraphs = rawParagraphs.enumerated().map { index, text in
                 IdentifiedParagraph(id: "p-\(index)", text: text)

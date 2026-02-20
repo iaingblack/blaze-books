@@ -152,82 +152,103 @@ final class EPUBParserService {
         }
     }
 
-    /// Extracts chapters from the publication's table of contents, falling back to readingOrder.
+    /// Extracts chapters from the publication using readingOrder for reliable text extraction
+    /// and table of contents for chapter titles.
+    ///
+    /// TOC links often contain fragment identifiers (e.g., `chapter.xhtml#section2`) which
+    /// cause both `publication.content(from:)` and `publication.get(link)` to fail silently.
+    /// Using readingOrder spine links (which have clean hrefs) avoids this entirely.
     private func extractChapters(from publication: Publication) async -> [ParsedChapter] {
-        // Try table of contents first
-        let tocResult = await publication.tableOfContents()
-        var links: [Link]
-        var useFallbackTitles = false
+        // Build title map from TOC (for display names)
+        let tocTitleMap = await buildTOCTitleMap(from: publication)
 
-        switch tocResult {
-        case .success(let tocLinks) where !tocLinks.isEmpty:
-            links = tocLinks
-        default:
-            // Fallback to readingOrder with auto-generated titles
-            links = publication.readingOrder
-            useFallbackTitles = true
-        }
-
-        guard !links.isEmpty else {
-            return []
-        }
+        // Use readingOrder as the primary source — these have clean hrefs, no fragments
+        let spineLinks = publication.readingOrder
+        guard !spineLinks.isEmpty else { return [] }
 
         var chapters: [ParsedChapter] = []
-        let totalChapters = links.count
+        let totalChapters = spineLinks.count
 
-        for (index, link) in links.enumerated() {
-            let chapterTitle: String
-            if useFallbackTitles {
-                chapterTitle = "Section \(index + 1)"
-            } else {
-                chapterTitle = link.title ?? "Chapter \(index + 1)"
-            }
+        for (index, spineLink) in spineLinks.enumerated() {
+            let href = spineLink.url().string
+            let chapterTitle = tocTitleMap[href]
+                ?? spineLink.title
+                ?? "Chapter \(index + 1)"
 
             let chapter = await extractChapter(
                 from: publication,
-                link: link,
+                spineLink: spineLink,
                 title: chapterTitle,
                 index: index
             )
             chapters.append(chapter)
 
-            // Update progress
             parseProgress = Double(index + 1) / Double(totalChapters)
         }
 
         return chapters
     }
 
-    /// Extracts a single chapter's text and tokenizes it.
+    /// Builds a map from spine href → chapter title using the table of contents.
+    /// Strips fragment identifiers from TOC hrefs to match against readingOrder hrefs.
+    private func buildTOCTitleMap(from publication: Publication) async -> [String: String] {
+        var titleMap: [String: String] = [:]
+
+        let tocResult = await publication.tableOfContents()
+        let tocLinks: [Link]
+        switch tocResult {
+        case .success(let links):
+            tocLinks = links
+        case .failure:
+            return titleMap
+        }
+
+        for link in tocLinks {
+            guard let title = link.title, !title.isEmpty else { continue }
+            // Strip fragment from href to match spine links
+            let href = link.url().string
+            let baseHref = href.components(separatedBy: "#").first ?? href
+            // First TOC entry per spine file wins (most specific title)
+            if titleMap[baseHref] == nil {
+                titleMap[baseHref] = title
+            }
+        }
+
+        return titleMap
+    }
+
+    /// Extracts a single chapter's text from a spine link and tokenizes it.
     private func extractChapter(
         from publication: Publication,
-        link: Link,
+        spineLink: Link,
         title: String,
         index: Int
     ) async -> ParsedChapter {
-        // Try the Content API first (primary extraction path)
-        let text = await extractTextViaContentAPI(from: publication, link: link)
+        // Primary: load raw resource directly from spine (most reliable)
+        let text = await extractTextFromResource(from: publication, link: spineLink)
 
-        if let text = text, !text.isEmpty {
-            let tokens = tokenizer.tokenize(text)
+        if let text = text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let cleanText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            let tokens = tokenizer.tokenize(cleanText)
             return ParsedChapter(
                 title: title,
                 index: index,
-                text: text,
+                text: cleanText,
                 tokens: tokens,
                 parseError: false
             )
         }
 
-        // Fallback: try raw resource access with basic HTML stripping
-        let fallbackText = await extractTextViaRawResource(from: publication, link: link)
+        // Fallback: try Content API
+        let contentText = await extractTextViaContentAPI(from: publication, link: spineLink)
 
-        if let fallbackText = fallbackText, !fallbackText.isEmpty {
-            let tokens = tokenizer.tokenize(fallbackText)
+        if let contentText = contentText, !contentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let cleanText = contentText.trimmingCharacters(in: .whitespacesAndNewlines)
+            let tokens = tokenizer.tokenize(cleanText)
             return ParsedChapter(
                 title: title,
                 index: index,
-                text: fallbackText,
+                text: cleanText,
                 tokens: tokens,
                 parseError: false
             )
@@ -243,30 +264,39 @@ final class EPUBParserService {
         )
     }
 
-    /// Extracts text using Readium's Content API (primary path).
-    ///
-    /// The Content API is marked experimental but provides the best text extraction.
-    /// We wrap it in do/catch for resilience.
+    /// Primary text extraction: load raw HTML from spine resource and strip tags.
+    /// Uses readingOrder links which have clean hrefs (no fragments).
+    private func extractTextFromResource(
+        from publication: Publication,
+        link: Link
+    ) async -> String? {
+        guard let resource = publication.get(link) else {
+            return nil
+        }
+
+        let dataResult = await resource.read()
+        switch dataResult {
+        case .success(let data):
+            // Try UTF-8 first, then Latin-1 as fallback
+            let htmlString: String?
+            if let utf8 = String(data: data, encoding: .utf8) {
+                htmlString = utf8
+            } else {
+                htmlString = String(data: data, encoding: .isoLatin1)
+            }
+            guard let html = htmlString else { return nil }
+            return stripHTML(html)
+        case .failure:
+            return nil
+        }
+    }
+
+    /// Fallback text extraction using Readium's Content API.
     private func extractTextViaContentAPI(
         from publication: Publication,
         link: Link
     ) async -> String? {
-        // Create a locator from the link's href
-        guard let mediaType = link.mediaType else {
-            // Try without media type using href-based content extraction
-            let locator = Locator(
-                href: link.url(),
-                mediaType: .html,
-                title: link.title
-            )
-
-            guard let content = publication.content(from: locator) else {
-                return nil
-            }
-
-            return await content.text()
-        }
-
+        let mediaType = link.mediaType ?? .html
         let locator = Locator(
             href: link.url(),
             mediaType: mediaType,
@@ -278,27 +308,6 @@ final class EPUBParserService {
         }
 
         return await content.text()
-    }
-
-    /// Fallback text extraction via raw resource access with basic HTML stripping.
-    private func extractTextViaRawResource(
-        from publication: Publication,
-        link: Link
-    ) async -> String? {
-        guard let resource = publication.get(link) else {
-            return nil
-        }
-
-        let dataResult = await resource.read()
-        switch dataResult {
-        case .success(let data):
-            guard let htmlString = String(data: data, encoding: .utf8) else {
-                return nil
-            }
-            return stripHTML(htmlString)
-        case .failure:
-            return nil
-        }
     }
 
     /// Basic HTML tag stripping as a last resort for text extraction.
