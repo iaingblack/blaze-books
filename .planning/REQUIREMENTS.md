@@ -1,7 +1,7 @@
 # Requirements: Blaze Books
 
 **Defined:** 2026-02-20
-**Core Value:** Synchronized reading and listening — the voice tracks the displayed word perfectly, whether in RSVP or page mode
+**Core Value:** Synchronized reading and listening -- the voice tracks the displayed word perfectly, whether in RSVP or page mode
 
 ## v1 Requirements
 
@@ -105,13 +105,39 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| EPUB-01 | Phase 1: Foundation | Pending |
+| EPUB-02 | Phase 1: Foundation | Pending |
+| EPUB-03 | Phase 1: Foundation | Pending |
+| EPUB-04 | Phase 1: Foundation | Pending |
+| LIB-05 | Phase 1: Foundation | Pending |
+| READ-01 | Phase 2: Reading Engine | Pending |
+| TTS-01 | Phase 2: Reading Engine | Pending |
+| TTS-03 | Phase 2: Reading Engine | Pending |
+| TTS-04 | Phase 2: Reading Engine | Pending |
+| TTS-05 | Phase 2: Reading Engine | Pending |
+| READ-02 | Phase 3: Reading Experience | Pending |
+| READ-03 | Phase 3: Reading Experience | Pending |
+| TTS-02 | Phase 3: Reading Experience | Pending |
+| NAV-01 | Phase 3: Reading Experience | Pending |
+| NAV-02 | Phase 4: Navigation & Appearance | Pending |
+| NAV-03 | Phase 4: Navigation & Appearance | Pending |
+| APP-01 | Phase 4: Navigation & Appearance | Pending |
+| APP-02 | Phase 4: Navigation & Appearance | Pending |
+| LIB-01 | Phase 5: Library | Pending |
+| LIB-02 | Phase 5: Library | Pending |
+| LIB-03 | Phase 5: Library | Pending |
+| LIB-04 | Phase 5: Library | Pending |
+| DISC-01 | Phase 6: Book Discovery | Pending |
+| DISC-02 | Phase 6: Book Discovery | Pending |
+| SYNC-01 | Phase 7: iCloud Sync | Pending |
+| SYNC-02 | Phase 7: iCloud Sync | Pending |
+| SYNC-03 | Phase 7: iCloud Sync | Pending |
 
 **Coverage:**
-- v1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- v1 requirements: 27 total
+- Mapped to phases: 27
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after initial definition*
+*Last updated: 2026-02-20 after roadmap creation*
