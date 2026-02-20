@@ -24,13 +24,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Reading Modes
 
-- [ ] **READ-01**: User can read in RSVP mode (single word display at set WPM)
+- [x] **READ-01**: User can read in RSVP mode (single word display at set WPM)
 - [ ] **READ-02**: User can read in page mode (full page with highlighted current word)
 - [ ] **READ-03**: User can toggle between RSVP and page mode mid-session without losing position
 
 ### TTS & Voice
 
-- [ ] **TTS-01**: User can enable text-to-speech that syncs with RSVP word display
+- [x] **TTS-01**: User can enable text-to-speech that syncs with RSVP word display
 - [ ] **TTS-02**: User can enable text-to-speech that syncs with page mode word highlighting
 - [ ] **TTS-03**: Voice speed caps gracefully when WPM exceeds synthesizer capability
 - [ ] **TTS-04**: User can choose from available Apple built-in voices
@@ -110,8 +110,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EPUB-03 | Phase 1: Foundation | Complete |
 | EPUB-04 | Phase 1: Foundation | Complete |
 | LIB-05 | Phase 1: Foundation | Complete |
-| READ-01 | Phase 2: Reading Engine | Pending |
-| TTS-01 | Phase 2: Reading Engine | Pending |
+| READ-01 | Phase 2: Reading Engine | Complete |
+| TTS-01 | Phase 2: Reading Engine | Complete |
 | TTS-03 | Phase 2: Reading Engine | Pending |
 | TTS-04 | Phase 2: Reading Engine | Pending |
 | TTS-05 | Phase 2: Reading Engine | Pending |
