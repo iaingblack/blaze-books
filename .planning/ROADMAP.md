@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Xcode project setup, SwiftData models with VersionedSchema, Readium SPM dependency
+- [x] 01-01-PLAN.md — Xcode project setup, SwiftData models with VersionedSchema, Readium SPM dependency
 - [ ] 01-02-PLAN.md — EPUB import service, Readium parser service, word tokenizer
 - [ ] 01-03-PLAN.md — Library grid view, reading view with position tracking, end-to-end wiring
 
@@ -135,7 +135,7 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 1/3 | In Progress | - |
 | 2. Reading Engine | 0/3 | Not started | - |
 | 3. Reading Experience | 0/2 | Not started | - |
 | 4. Navigation & Appearance | 0/2 | Not started | - |

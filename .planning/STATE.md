@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 1 of 7 (Foundation)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-02-20 -- Roadmap created (7 phases, 27 requirements mapped)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-02-20 -- Completed 01-01-PLAN.md (project setup and data models)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 7%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: --
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 7 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 1. Foundation | 1 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: --
+- Last 5 plans: 7m
 - Trend: --
 
 *Updated after each plan completion*
@@ -45,6 +45,10 @@ Recent decisions affecting current work:
 - [Roadmap]: 7 phases derived from 27 requirements, following EPUB -> Engine -> UI -> Library -> Discovery -> Sync dependency chain
 - [Roadmap]: Phase 2 builds engines (RSVP, TTS, coordinator) with READ-01 so core sync can be verified before UI phases
 - [Roadmap]: Phase 5 (Library) depends on Phase 1 only, enabling parallel work with Phases 3-4
+- [01-01]: Local-only ModelConfiguration for development; CloudKit database param deferred to Phase 7
+- [01-01]: Chapter.text stores full plain text at import time for offline reading
+- [01-01]: ReadingPosition.verificationSnippet for position resilience across tokenizer changes
+- [01-01]: SHA256 file hash via CryptoKit for duplicate EPUB detection
 
 ### Pending Todos
 
@@ -59,5 +63,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Roadmap created, ready to plan Phase 1
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None

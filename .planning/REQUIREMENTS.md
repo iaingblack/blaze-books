@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **EPUB-01**: User can import DRM-free EPUB files via iOS Files app
 - [ ] **EPUB-02**: App extracts clean text with chapter structure from EPUB files
 - [ ] **EPUB-03**: App handles malformed EPUB XML gracefully without crashing
-- [ ] **EPUB-04**: Imported books work fully offline without internet connection
+- [x] **EPUB-04**: Imported books work fully offline without internet connection
 
 ### Library
 
@@ -20,7 +20,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **LIB-02**: User can organize books into custom shelves
 - [ ] **LIB-03**: User can remove books from library
 - [ ] **LIB-04**: User sees "continue reading" section with recently read books
-- [ ] **LIB-05**: App auto-saves reading position per book
+- [x] **LIB-05**: App auto-saves reading position per book
 
 ### Reading Modes
 
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EPUB-01 | Phase 1: Foundation | Pending |
 | EPUB-02 | Phase 1: Foundation | Pending |
 | EPUB-03 | Phase 1: Foundation | Pending |
-| EPUB-04 | Phase 1: Foundation | Pending |
-| LIB-05 | Phase 1: Foundation | Pending |
+| EPUB-04 | Phase 1: Foundation | Complete |
+| LIB-05 | Phase 1: Foundation | Complete |
 | READ-01 | Phase 2: Reading Engine | Pending |
 | TTS-01 | Phase 2: Reading Engine | Pending |
 | TTS-03 | Phase 2: Reading Engine | Pending |
