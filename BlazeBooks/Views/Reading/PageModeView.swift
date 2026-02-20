@@ -30,6 +30,9 @@ struct PageModeView: View {
     /// Service instance for generating `AttributedString` with word highlighting.
     let pageTextService: PageTextService
 
+    /// User-adjustable font size for paragraph text, passed from ReadingView's @AppStorage.
+    let readingFontSize: Double
+
     /// Tracks the last paragraph we auto-scrolled to, preventing redundant scroll
     /// animations when the highlight moves between words within the same paragraph.
     @State private var lastScrolledParagraph: Int = -1
@@ -56,8 +59,8 @@ struct PageModeView: View {
                                 for: paragraph,
                                 highlightedWordIndex: highlightedWordIndex
                             ))
-                            .font(.system(size: 17))
-                            .lineSpacing(7)
+                            .font(.system(size: readingFontSize))
+                            .lineSpacing(readingFontSize * 0.41)
                             .textSelection(.enabled)
                             .padding(.horizontal, 20)
                             .padding(.bottom, 14)

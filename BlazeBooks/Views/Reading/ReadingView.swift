@@ -1,6 +1,18 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Reading Defaults
+
+/// Shared constants for reading font size configuration.
+/// Centralizes @AppStorage key and range to prevent inconsistent defaults across views.
+enum ReadingDefaults {
+    static let fontSizeKey = "readingFontSize"
+    static let defaultFontSize: Double = 17.0
+    static let minFontSize: Double = 12.0
+    static let maxFontSize: Double = 32.0
+    static let fontSizeStep: Double = 2.0
+}
+
 /// Dual-mode reading view supporting both scroll-based Page mode and RSVP speed reading.
 ///
 /// Features:
@@ -38,6 +50,11 @@ struct ReadingView: View {
     @State private var pageTextService = PageTextService()
     /// Pre-computed paragraphs with cached word tokens for page mode highlighting.
     @State private var pageParagraphs: [PageTextService.ParagraphData] = []
+
+    // MARK: - Font Size State
+
+    /// User-adjustable font size for page mode reading, persisted via UserDefaults.
+    @AppStorage(ReadingDefaults.fontSizeKey) private var readingFontSize: Double = ReadingDefaults.defaultFontSize
 
     // MARK: - Table of Contents State
 
@@ -93,6 +110,9 @@ struct ReadingView: View {
             }
             ToolbarItem(placement: .principal) {
                 modeToggle
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                fontSizeControls
             }
         }
         .onAppear {
@@ -162,6 +182,36 @@ struct ReadingView: View {
                 )
             }
         }
+    }
+
+    // MARK: - Font Size Controls
+
+    /// Inline font size adjustment controls (A-/pt/A+) for page mode reading.
+    /// Font size is clamped to ReadingDefaults.minFontSize...maxFontSize.
+    private var fontSizeControls: some View {
+        HStack(spacing: 16) {
+            Button {
+                readingFontSize = max(ReadingDefaults.minFontSize, readingFontSize - ReadingDefaults.fontSizeStep)
+            } label: {
+                Image(systemName: "textformat.size.smaller")
+                    .font(.title3)
+            }
+            .disabled(readingFontSize <= ReadingDefaults.minFontSize)
+
+            Text("\(Int(readingFontSize))pt")
+                .font(.system(.caption, design: .rounded).monospacedDigit())
+                .frame(width: 45)
+
+            Button {
+                readingFontSize = min(ReadingDefaults.maxFontSize, readingFontSize + ReadingDefaults.fontSizeStep)
+            } label: {
+                Image(systemName: "textformat.size.larger")
+                    .font(.title3)
+            }
+            .disabled(readingFontSize >= ReadingDefaults.maxFontSize)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
     }
 
     // MARK: - Progress Bar
@@ -263,7 +313,8 @@ struct ReadingView: View {
                     paragraphs: [],
                     highlightedWordIndex: nil,
                     chapterTitle: chapterTitle,
-                    pageTextService: pageTextService
+                    pageTextService: pageTextService,
+                    readingFontSize: readingFontSize
                 )
             } else if coordinator.isTTSEnabled {
                 // Page mode with TTS: word highlighting and auto-scroll
@@ -271,7 +322,8 @@ struct ReadingView: View {
                     paragraphs: pageParagraphs,
                     highlightedWordIndex: coordinator.highlightedWordIndex,
                     chapterTitle: chapterTitle,
-                    pageTextService: pageTextService
+                    pageTextService: pageTextService,
+                    readingFontSize: readingFontSize
                 )
             } else {
                 // Page mode without TTS: plain text, manual scrolling, scroll-based position tracking
@@ -434,8 +486,8 @@ struct ReadingView: View {
                 // Paragraphs
                 ForEach(paragraphs) { paragraph in
                     Text(paragraph.text)
-                        .font(.system(size: 17))
-                        .lineSpacing(7)
+                        .font(.system(size: readingFontSize))
+                        .lineSpacing(readingFontSize * 0.41)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 14)
                         .id(paragraph.id)
