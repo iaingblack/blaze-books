@@ -39,6 +39,11 @@ struct ReadingView: View {
     /// Pre-computed paragraphs with cached word tokens for page mode highlighting.
     @State private var pageParagraphs: [PageTextService.ParagraphData] = []
 
+    // MARK: - Table of Contents State
+
+    /// Whether the table of contents sheet is presented.
+    @State private var showTableOfContents = false
+
     // MARK: - Shared Controls State
 
     /// Whether the voice picker sheet is presented.
@@ -79,6 +84,13 @@ struct ReadingView: View {
         .navigationTitle(book.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showTableOfContents = true
+                } label: {
+                    Image(systemName: "list.bullet")
+                }
+            }
             ToolbarItem(placement: .principal) {
                 modeToggle
             }
@@ -111,6 +123,17 @@ struct ReadingView: View {
                 onVoiceSelected: { voice in
                     coordinator.setVoice(identifier: voice.identifier)
                     showVoicePicker = false
+                }
+            )
+            .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showTableOfContents) {
+            TableOfContentsView(
+                chapters: sortedChapters,
+                currentChapterIndex: currentChapterIndex,
+                onChapterSelected: { chapterIndex in
+                    showTableOfContents = false
+                    jumpToChapter(chapterIndex)
                 }
             )
             .presentationDetents([.medium, .large])
@@ -564,7 +587,13 @@ struct ReadingView: View {
     // MARK: - Navigation
 
     private func navigateChapter(direction: Int) {
-        let newIndex = currentChapterIndex + direction
+        jumpToChapter(currentChapterIndex + direction)
+    }
+
+    /// Jumps to a specific chapter by index. Stops any active playback, loads
+    /// the chapter content, reloads the coordinator, and saves the new position.
+    /// Used by both prev/next navigation and table of contents selection.
+    private func jumpToChapter(_ newIndex: Int) {
         guard newIndex >= 0, newIndex < totalChapters else { return }
 
         // Stop playback if active
