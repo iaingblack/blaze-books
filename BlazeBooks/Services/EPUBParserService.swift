@@ -316,6 +316,13 @@ final class EPUBParserService {
     private func stripHTML(_ html: String) -> String {
         var text = html
 
+        // Remove entire <head> block (contains <title> and metadata, not body text)
+        text = text.replacingOccurrences(
+            of: "<head[^>]*>[\\s\\S]*?</head>",
+            with: "",
+            options: .regularExpression
+        )
+
         // Remove script and style blocks entirely
         text = text.replacingOccurrences(
             of: "<(script|style)[^>]*>[\\s\\S]*?</\\1>",
@@ -323,9 +330,16 @@ final class EPUBParserService {
             options: .regularExpression
         )
 
+        // Remove heading tags and their content (chapter title is shown separately)
+        text = text.replacingOccurrences(
+            of: "<h[1-6][^>]*>[\\s\\S]*?</h[1-6]>",
+            with: "\n",
+            options: .regularExpression
+        )
+
         // Replace block-level tags with newlines
         text = text.replacingOccurrences(
-            of: "</(p|div|h[1-6]|li|tr|br|blockquote)\\s*>",
+            of: "</(p|div|li|tr|br|blockquote)\\s*>",
             with: "\n",
             options: .regularExpression
         )
