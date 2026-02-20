@@ -26,7 +26,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **READ-01**: User can read in RSVP mode (single word display at set WPM)
 - [x] **READ-02**: User can read in page mode (full page with highlighted current word)
-- [ ] **READ-03**: User can toggle between RSVP and page mode mid-session without losing position
+- [x] **READ-03**: User can toggle between RSVP and page mode mid-session without losing position
 
 ### TTS & Voice
 
@@ -116,7 +116,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TTS-04 | Phase 2: Reading Engine | Complete |
 | TTS-05 | Phase 2: Reading Engine | Complete |
 | READ-02 | Phase 3: Reading Experience | Complete |
-| READ-03 | Phase 3: Reading Experience | Pending |
+| READ-03 | Phase 3: Reading Experience | Complete |
 | TTS-02 | Phase 3: Reading Experience | Complete |
 | NAV-01 | Phase 3: Reading Experience | Complete |
 | NAV-02 | Phase 4: Navigation & Appearance | Pending |

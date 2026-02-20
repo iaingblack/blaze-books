@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Data models, EPUB parsing, word tokenization, and file import
 - [x] **Phase 2: Reading Engine** - RSVP engine, TTS service, synchronization coordinator, and voice management
-- [ ] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
+- [x] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
 - [ ] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
 - [ ] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
 - [ ] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
@@ -68,8 +68,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — ReadingMode enum, PageTextService (paragraph splitting, word-to-paragraph mapping, AttributedString highlighting), ReadingCoordinator extensions (mode switching, debounced WPM)
-- [ ] 03-02-PLAN.md — PageModeView (scrollable text with word highlighting and auto-scroll), WPMSliderView, ReadingView integration with mode switching
+- [x] 03-01-PLAN.md — ReadingMode enum, PageTextService (paragraph splitting, word-to-paragraph mapping, AttributedString highlighting), ReadingCoordinator extensions (mode switching, debounced WPM)
+- [x] 03-02-PLAN.md — PageModeView (scrollable text with word highlighting and auto-scroll), WPMSliderView, ReadingView integration with mode switching
 
 ### Phase 4: Navigation & Appearance
 **Goal**: Users can navigate books by chapter and customize the reading appearance for comfort
@@ -137,7 +137,7 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-02-20 |
 | 2. Reading Engine | 3/3 | Complete    | 2026-02-20 |
-| 3. Reading Experience | 0/2 | Not started | - |
+| 3. Reading Experience | 2/2 | Complete | 2026-02-20 |
 | 4. Navigation & Appearance | 0/2 | Not started | - |
 | 5. Library | 0/2 | Not started | - |
 | 6. Book Discovery | 0/1 | Not started | - |

@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 3 of 7 (Reading Experience)
-Plan: 1 of 2 in current phase
-Status: Executing Phase 3
-Last activity: 2026-02-20 -- Completed 03-01-PLAN.md (Page mode engine layer: ReadingMode, PageTextService, ReadingCoordinator extensions)
+Phase: 3 of 7 (Reading Experience) -- COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase 3 Complete
+Last activity: 2026-02-20 -- Completed 03-02-PLAN.md (Page mode views, WPM slider, dual-mode ReadingView integration)
 
-Progress: [█████████░░░░░░░░░░░] 47%
+Progress: [███████████░░░░░░░░░] 53%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: ~6 min
-- Total execution time: ~0.7 hours
+- Total execution time: ~0.8 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████████░░░░░░░░░░░] 47%
 |-------|-------|-------|----------|
 | 1. Foundation | 3 | ~24 min | ~8 min |
 | 2. Reading Engine | 3 | multi-session | varies |
-| 3. Reading Experience | 1/2 | 4 min | 4 min |
+| 3. Reading Experience | 2/2 | 12 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 4m, 5m, multi-session, multi-session, 4m
+- Last 5 plans: 5m, multi-session, multi-session, 4m, 8m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
@@ -81,6 +81,10 @@ Recent decisions affecting current work:
 - [03-01]: ParagraphData caches WordTokens at split time to avoid re-tokenization per word highlight change
 - [03-01]: highlightedWordIndex returns nil when paused (no frozen highlight in page mode)
 - [03-01]: setWPM only updates RSVPEngine; commitWPMChange debounces TTS restart to slider drag end
+- [03-02]: Animation suppressed on word highlight transitions via .transaction for instant swap (Research anti-pattern)
+- [03-02]: WPMSliderView extracted as shared component used in both RSVP and page modes
+- [03-02]: switchMode guard removed to support Picker binding (guard incompatible with SwiftUI state flow)
+- [03-02]: coordinator.loadBook called on initial view appear for both modes (not just RSVP entry)
 
 ### Pending Todos
 
@@ -95,5 +99,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 03-01-PLAN.md -- Page mode engine layer (ReadingMode, PageTextService, ReadingCoordinator extensions for mode switching and debounced WPM).
+Stopped at: Completed 03-02-PLAN.md -- Phase 3 complete. Page mode views, WPM slider, dual-mode ReadingView integration with human-verified end-to-end reading experience.
 Resume file: None
