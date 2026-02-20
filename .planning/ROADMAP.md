@@ -13,7 +13,7 @@ Blaze Books delivers an iOS reading app where synchronized text-to-speech tracks
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Data models, EPUB parsing, word tokenization, and file import
-- [ ] **Phase 2: Reading Engine** - RSVP engine, TTS service, synchronization coordinator, and voice management
+- [x] **Phase 2: Reading Engine** - RSVP engine, TTS service, synchronization coordinator, and voice management
 - [ ] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
 - [ ] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
 - [ ] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
@@ -54,7 +54,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — RSVPEngine with ORP positioning and TTSService with sentence-level chunking
 - [x] 02-02-PLAN.md — ReadingCoordinator, SpeedCapService, and VoiceManager
-- [ ] 02-03-PLAN.md — RSVP display view, voice picker, speed cap banner, and ReadingView integration
+- [x] 02-03-PLAN.md — RSVP display view, voice picker, speed cap banner, and ReadingView integration
 
 ### Phase 3: Reading Experience
 **Goal**: Users have two complete reading modes (RSVP and page) with synchronized TTS and can switch between them without losing their place
@@ -136,7 +136,7 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-02-20 |
-| 2. Reading Engine | 0/3 | Not started | - |
+| 2. Reading Engine | 3/3 | Complete | 2026-02-20 |
 | 3. Reading Experience | 0/2 | Not started | - |
 | 4. Navigation & Appearance | 0/2 | Not started | - |
 | 5. Library | 0/2 | Not started | - |

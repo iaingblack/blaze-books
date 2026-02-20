@@ -5,34 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Synchronized reading and listening -- the voice tracks the displayed word perfectly, whether in RSVP or page mode
-**Current focus:** Phase 2: Reading Engine
+**Current focus:** Phase 3: Reading Experience
 
 ## Current Position
 
-Phase: 2 of 7 (Reading Engine)
-Plan: 2 of 3 in current phase
-Status: Executing Phase 2
-Last activity: 2026-02-20 -- Completed 02-02-PLAN.md (Coordination and services: ReadingCoordinator + SpeedCapService + VoiceManager)
+Phase: 3 of 7 (Reading Experience)
+Plan: 0 of 2 in current phase
+Status: Phase 2 complete, ready for Phase 3
+Last activity: 2026-02-20 -- Completed 02-03-PLAN.md (Reading views: RSVPDisplayView, VoicePickerView, SpeedCapBanner, ReadingView integration)
 
-Progress: [████░░░░░░] 33%
+Progress: [████████░░░░░░░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: ~6 min
-- Total execution time: ~0.5 hours
+- Total execution time: ~0.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 3 | ~24 min | ~8 min |
-| 2. Reading Engine | 2 | ~9 min | ~4.5 min |
+| 2. Reading Engine | 3 | multi-session | varies |
 
 **Recent Trend:**
-- Last 5 plans: 7m, 5m, multi-session, 4m, 5m
-- Trend: consistent
+- Last 5 plans: multi-session, 4m, 5m, multi-session, multi-session
+- Trend: checkpoint plans take multiple sessions
 
 *Updated after each plan completion*
 
@@ -72,6 +72,9 @@ Recent decisions affecting current work:
 - [02-02]: Conservative per-voice speed caps: 300 WPM default, 350 enhanced, 400 premium quality
 - [02-02]: Download guidance card for voice downloads (Apple provides no API for uninstalled voices)
 - [02-02]: Voice preview sample: "The quick brown fox jumps over the lazy dog."
+- [02-03]: White foreground for RSVP before/after ORP text on dark background (.primary was invisible on black)
+- [02-03]: GeometryReader with half-width frames for ORP character centering at exact screen midpoint
+- [02-03]: Segmented Picker for Page/RSVP mode switching in reading view
 
 ### Pending Todos
 
@@ -86,5 +89,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 02-02-PLAN.md -- Coordination and services (ReadingCoordinator + SpeedCapService + VoiceManager)
+Stopped at: Completed 02-03-PLAN.md -- Reading views (RSVPDisplayView, VoicePickerView, SpeedCapBanner, ReadingView integration). Phase 2 complete.
 Resume file: None
