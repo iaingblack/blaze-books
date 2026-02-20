@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 2 of 7 (Reading Engine)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing Phase 2
-Last activity: 2026-02-20 -- Completed 02-01-PLAN.md (Core engines: RSVPEngine + TTSService)
+Last activity: 2026-02-20 -- Completed 02-02-PLAN.md (Coordination and services: ReadingCoordinator + SpeedCapService + VoiceManager)
 
-Progress: [███░░░░░░░] 27%
+Progress: [████░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: ~7 min
+- Total plans completed: 5
+- Average duration: ~6 min
 - Total execution time: ~0.5 hours
 
 **By Phase:**
@@ -28,11 +28,11 @@ Progress: [███░░░░░░░] 27%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 3 | ~24 min | ~8 min |
-| 2. Reading Engine | 1 | ~4 min | ~4 min |
+| 2. Reading Engine | 2 | ~9 min | ~4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 7m, 5m, multi-session, 4m
-- Trend: improving
+- Last 5 plans: 7m, 5m, multi-session, 4m, 5m
+- Trend: consistent
 
 *Updated after each plan completion*
 
@@ -66,6 +66,12 @@ Recent decisions affecting current work:
 - [02-01]: Sentence word counting via NLTokenizer(unit: .word) for consistency with WordTokenizer
 - [02-01]: usesApplicationAudioSession = false per WWDC 2020 -- system manages audio session
 - [02-01]: NSObject delegate bridge pattern: inner DelegateHandler forwards AVSpeechSynthesizerDelegate to @Observable
+- [02-02]: withObservationTracking recursive pattern for RSVPEngine -> ReadingCoordinator state bridge in Timer mode
+- [02-02]: 1.5-second chapter auto-advance delay via Task.sleep (Claude's discretion for chapter transitions)
+- [02-02]: WPM-to-rate linear interpolation: rate 0.5 = 180 WPM baseline (approximate, empirical refinement needed)
+- [02-02]: Conservative per-voice speed caps: 300 WPM default, 350 enhanced, 400 premium quality
+- [02-02]: Download guidance card for voice downloads (Apple provides no API for uninstalled voices)
+- [02-02]: Voice preview sample: "The quick brown fox jumps over the lazy dog."
 
 ### Pending Todos
 
@@ -80,5 +86,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 02-01-PLAN.md -- Core engines (RSVPEngine + TTSService)
+Stopped at: Completed 02-02-PLAN.md -- Coordination and services (ReadingCoordinator + SpeedCapService + VoiceManager)
 Resume file: None

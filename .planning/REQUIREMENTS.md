@@ -32,9 +32,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TTS-01**: User can enable text-to-speech that syncs with RSVP word display
 - [ ] **TTS-02**: User can enable text-to-speech that syncs with page mode word highlighting
-- [ ] **TTS-03**: Voice speed caps gracefully when WPM exceeds synthesizer capability
-- [ ] **TTS-04**: User can choose from available Apple built-in voices
-- [ ] **TTS-05**: User can download enhanced Apple voice packs on demand
+- [x] **TTS-03**: Voice speed caps gracefully when WPM exceeds synthesizer capability
+- [x] **TTS-04**: User can choose from available Apple built-in voices
+- [x] **TTS-05**: User can download enhanced Apple voice packs on demand
 
 ### Controls & Navigation
 
@@ -112,9 +112,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIB-05 | Phase 1: Foundation | Complete |
 | READ-01 | Phase 2: Reading Engine | Complete |
 | TTS-01 | Phase 2: Reading Engine | Complete |
-| TTS-03 | Phase 2: Reading Engine | Pending |
-| TTS-04 | Phase 2: Reading Engine | Pending |
-| TTS-05 | Phase 2: Reading Engine | Pending |
+| TTS-03 | Phase 2: Reading Engine | Complete |
+| TTS-04 | Phase 2: Reading Engine | Complete |
+| TTS-05 | Phase 2: Reading Engine | Complete |
 | READ-02 | Phase 3: Reading Experience | Pending |
 | READ-03 | Phase 3: Reading Experience | Pending |
 | TTS-02 | Phase 3: Reading Experience | Pending |

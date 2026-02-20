@@ -52,8 +52,8 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — RSVPEngine with ORP positioning and TTSService with sentence-level chunking
-- [ ] 02-02-PLAN.md — ReadingCoordinator, SpeedCapService, and VoiceManager
+- [x] 02-01-PLAN.md — RSVPEngine with ORP positioning and TTSService with sentence-level chunking
+- [x] 02-02-PLAN.md — ReadingCoordinator, SpeedCapService, and VoiceManager
 - [ ] 02-03-PLAN.md — RSVP display view, voice picker, speed cap banner, and ReadingView integration
 
 ### Phase 3: Reading Experience
