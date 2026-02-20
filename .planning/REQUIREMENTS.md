@@ -39,8 +39,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Controls & Navigation
 
 - [x] **NAV-01**: User can adjust reading speed via WPM slider (100-500 range)
-- [ ] **NAV-02**: User can navigate via table of contents to jump between chapters
-- [ ] **NAV-03**: User can skip to next/previous chapter with controls
+- [x] **NAV-02**: User can navigate via table of contents to jump between chapters
+- [x] **NAV-03**: User can skip to next/previous chapter with controls
 
 ### Book Discovery
 
@@ -119,8 +119,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | READ-03 | Phase 3: Reading Experience | Complete |
 | TTS-02 | Phase 3: Reading Experience | Complete |
 | NAV-01 | Phase 3: Reading Experience | Complete |
-| NAV-02 | Phase 4: Navigation & Appearance | Pending |
-| NAV-03 | Phase 4: Navigation & Appearance | Pending |
+| NAV-02 | Phase 4: Navigation & Appearance | Complete |
+| NAV-03 | Phase 4: Navigation & Appearance | Complete |
 | APP-01 | Phase 4: Navigation & Appearance | Pending |
 | APP-02 | Phase 4: Navigation & Appearance | Pending |
 | LIB-01 | Phase 5: Library | Pending |

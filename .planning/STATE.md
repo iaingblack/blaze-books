@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Synchronized reading and listening -- the voice tracks the displayed word perfectly, whether in RSVP or page mode
-**Current focus:** Phase 3: Reading Experience
+**Current focus:** Phase 4: Navigation & Appearance
 
 ## Current Position
 
-Phase: 3 of 7 (Reading Experience) -- COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase 3 Complete
-Last activity: 2026-02-20 -- Completed 03-02-PLAN.md (Page mode views, WPM slider, dual-mode ReadingView integration)
+Phase: 4 of 7 (Navigation & Appearance)
+Plan: 1 of 2 in current phase
+Status: Executing Phase 4
+Last activity: 2026-02-20 -- Completed 04-01-PLAN.md (Table of contents navigation and jumpToChapter refactor)
 
-Progress: [███████████░░░░░░░░░] 53%
+Progress: [████████████░░░░░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: ~6 min
-- Total execution time: ~0.8 hours
+- Total execution time: ~0.9 hours
 
 **By Phase:**
 
@@ -30,9 +30,10 @@ Progress: [███████████░░░░░░░░░] 53%
 | 1. Foundation | 3 | ~24 min | ~8 min |
 | 2. Reading Engine | 3 | multi-session | varies |
 | 3. Reading Experience | 2/2 | 12 min | 6 min |
+| 4. Navigation & Appearance | 1/2 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 5m, multi-session, multi-session, 4m, 8m
+- Last 5 plans: multi-session, multi-session, 4m, 8m, 5m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
@@ -85,6 +86,8 @@ Recent decisions affecting current work:
 - [03-02]: WPMSliderView extracted as shared component used in both RSVP and page modes
 - [03-02]: switchMode guard removed to support Picker binding (guard incompatible with SwiftUI state flow)
 - [03-02]: coordinator.loadBook called on initial view appear for both modes (not just RSVP entry)
+- [04-01]: ChapterRow value type mapping to avoid SwiftData @Model Binding interference in ForEach (Xcode 26 SDK)
+- [04-01]: jumpToChapter extracted as shared method used by both TOC selection and prev/next buttons
 
 ### Pending Todos
 
@@ -99,5 +102,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 03-02-PLAN.md -- Phase 3 complete. Page mode views, WPM slider, dual-mode ReadingView integration with human-verified end-to-end reading experience.
+Stopped at: Completed 04-01-PLAN.md -- TOC navigation with chapter list sheet, jumpToChapter shared method, toolbar button.
 Resume file: None
