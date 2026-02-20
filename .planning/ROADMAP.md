@@ -80,11 +80,11 @@ Plans:
   2. User can skip to the next or previous chapter using on-screen controls
   3. App follows the system dark mode / light mode setting automatically
   4. User can increase or decrease font size for reading and see it apply immediately
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Table of contents navigation and jumpToChapter refactor
+- [ ] 04-02-PLAN.md — Dark mode compatibility audit and user-adjustable font size
 
 ### Phase 5: Library
 **Goal**: Users can browse, organize, and manage their book collection with a polished library experience
