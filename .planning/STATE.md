@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Synchronized reading and listening -- the voice tracks the displayed word perfectly, whether in RSVP or page mode
-**Current focus:** Phase 4: Navigation & Appearance
+**Current focus:** Phase 5: Library Management
 
 ## Current Position
 
-Phase: 4 of 7 (Navigation & Appearance)
-Plan: 1 of 2 in current phase
-Status: Executing Phase 4
-Last activity: 2026-02-20 -- Completed 04-01-PLAN.md (Table of contents navigation and jumpToChapter refactor)
+Phase: 5 of 7 (Library Management)
+Plan: 0 of ? in current phase
+Status: Phase 4 complete, ready for Phase 5
+Last activity: 2026-02-20 -- Completed 04-02-PLAN.md (Appearance & font size controls, dark mode documentation)
 
-Progress: [████████████░░░░░░░░] 60%
+Progress: [█████████████░░░░░░░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: ~6 min
-- Total execution time: ~0.9 hours
+- Total execution time: ~1.0 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [████████████░░░░░░░░] 60%
 | 1. Foundation | 3 | ~24 min | ~8 min |
 | 2. Reading Engine | 3 | multi-session | varies |
 | 3. Reading Experience | 2/2 | 12 min | 6 min |
-| 4. Navigation & Appearance | 1/2 | 5 min | 5 min |
+| 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: multi-session, multi-session, 4m, 8m, 5m
+- Last 5 plans: multi-session, 4m, 8m, 5m, 3m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
@@ -88,6 +88,10 @@ Recent decisions affecting current work:
 - [03-02]: coordinator.loadBook called on initial view appear for both modes (not just RSVP entry)
 - [04-01]: ChapterRow value type mapping to avoid SwiftData @Model Binding interference in ForEach (Xcode 26 SDK)
 - [04-01]: jumpToChapter extracted as shared method used by both TOC selection and prev/next buttons
+- [04-02]: ReadingDefaults enum centralizes @AppStorage key and range constants to prevent default mismatches across views
+- [04-02]: Line spacing uses 41% ratio (readingFontSize * 0.41) preserving original 7/17 design proportion
+- [04-02]: RSVP dark theme is intentional design, not a dark mode bug -- documented in RSVPDisplayView
+- [04-02]: Idle state dash uses .white.opacity(0.3) instead of .secondary for consistent contrast on dark RSVP background
 
 ### Pending Todos
 
@@ -102,5 +106,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 04-01-PLAN.md -- TOC navigation with chapter list sheet, jumpToChapter shared method, toolbar button.
+Stopped at: Completed 04-02-PLAN.md -- Phase 4 complete. Appearance/font size controls, dark mode documentation. Ready for Phase 5.
 Resume file: None

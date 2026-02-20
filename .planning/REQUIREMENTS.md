@@ -49,8 +49,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Appearance
 
-- [ ] **APP-01**: App supports dark mode and light mode (follows system)
-- [ ] **APP-02**: User can adjust font size for reading
+- [x] **APP-01**: App supports dark mode and light mode (follows system)
+- [x] **APP-02**: User can adjust font size for reading
 
 ### Sync
 
@@ -121,8 +121,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-01 | Phase 3: Reading Experience | Complete |
 | NAV-02 | Phase 4: Navigation & Appearance | Complete |
 | NAV-03 | Phase 4: Navigation & Appearance | Complete |
-| APP-01 | Phase 4: Navigation & Appearance | Pending |
-| APP-02 | Phase 4: Navigation & Appearance | Pending |
+| APP-01 | Phase 4: Navigation & Appearance | Complete |
+| APP-02 | Phase 4: Navigation & Appearance | Complete |
 | LIB-01 | Phase 5: Library | Pending |
 | LIB-02 | Phase 5: Library | Pending |
 | LIB-03 | Phase 5: Library | Pending |
