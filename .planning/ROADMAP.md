@@ -65,11 +65,11 @@ Plans:
   2. User can toggle between RSVP and page mode mid-session and resume at the exact same word
   3. User can adjust reading speed via a WPM slider (100-500 range) and see the change take effect immediately
   4. TTS audio in page mode stays synchronized with word highlighting throughout an entire chapter
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — ReadingMode enum, PageTextService (paragraph splitting, word-to-paragraph mapping, AttributedString highlighting), ReadingCoordinator extensions (mode switching, debounced WPM)
+- [ ] 03-02-PLAN.md — PageModeView (scrollable text with word highlighting and auto-scroll), WPMSliderView, ReadingView integration with mode switching
 
 ### Phase 4: Navigation & Appearance
 **Goal**: Users can navigate books by chapter and customize the reading appearance for comfort
