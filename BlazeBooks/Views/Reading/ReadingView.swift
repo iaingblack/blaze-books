@@ -4,25 +4,19 @@ import SwiftData
 /// Dual-mode reading view supporting both scroll-based Page mode and RSVP speed reading.
 ///
 /// Features:
-/// - **Page mode (existing):** Scrollable chapter text with position tracking
-/// - **RSVP mode (Phase 2):** ORP-aligned single word display with optional TTS
-/// - Mode toggle via segmented control in the toolbar
+/// - **Page mode:** Scrollable chapter text with word-level TTS highlighting via PageModeView
+/// - **RSVP mode:** ORP-aligned single word display with optional TTS via RSVPDisplayView
+/// - Mode toggle via segmented control in the toolbar (binds to coordinator.readingMode)
+/// - Position-preserving mode switching via coordinator.switchMode(to:) (READ-03)
+/// - Shared WPM slider (WPMSliderView) with debounced TTS restart (NAV-01)
+/// - TTS controls available in both modes (play/pause, voice picker, speed cap banner)
 /// - Readable typography (~17pt, comfortable line spacing) in Page mode
 /// - Chapter title as styled header
-/// - Paragraph-based text layout with IDs for scroll restoration
-/// - Auto-saving position on scroll (debounced)
+/// - Auto-saving position on scroll (page mode) or word change (both modes with TTS)
 /// - Position restoration on reopen
 /// - Thin progress bar showing chapter/book progress
 /// - Previous/next chapter navigation
 /// - Broken chapter placeholder display
-///
-/// **RSVP mode specifics:**
-/// - RSVPDisplayView at center with ORP-highlighted word
-/// - Play/pause controls with pause-freezes-last-word behavior
-/// - TTS toggle with voice picker sheet
-/// - WPM slider (100-500) with speed cap integration
-/// - SpeedCapBanner for inline voice speed limit feedback
-/// - Word and chapter progress indicators
 struct ReadingView: View {
     let book: Book
 
@@ -38,18 +32,23 @@ struct ReadingView: View {
     @State private var scrollTarget: String?
     @State private var isBrokenChapter: Bool = false
 
-    // MARK: - RSVP Mode State
+    // MARK: - Page Mode State
 
-    /// Whether the view is in RSVP mode (true) or Page mode (false).
-    @State private var isRSVPMode: Bool = false
+    /// Service for paragraph processing and word-level AttributedString highlighting.
+    @State private var pageTextService = PageTextService()
+    /// Pre-computed paragraphs with cached word tokens for page mode highlighting.
+    @State private var pageParagraphs: [PageTextService.ParagraphData] = []
+
+    // MARK: - Shared Controls State
+
     /// Whether the voice picker sheet is presented.
     @State private var showVoicePicker: Bool = false
     /// Whether the WPM slider is expanded/visible.
     @State private var showWPMSlider: Bool = false
     /// Local slider value for smooth dragging (synced to coordinator on change).
     @State private var sliderWPM: Double = 250
-    /// Timer for debounced position saves in RSVP mode.
-    @State private var rsvpPositionSaveTask: Task<Void, Never>?
+    /// Timer for debounced position saves during TTS/RSVP playback.
+    @State private var positionSaveTask: Task<Void, Never>?
 
     private var sortedChapters: [Chapter] {
         (book.chapters ?? []).sorted { $0.index < $1.index }
@@ -60,6 +59,7 @@ struct ReadingView: View {
     }
 
     var body: some View {
+        @Bindable var coordinator = coordinator
         VStack(spacing: 0) {
             // Progress bar at the top
             progressBar
@@ -67,10 +67,10 @@ struct ReadingView: View {
             if isLoading {
                 ProgressView("Loading chapter...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if isRSVPMode {
+            } else if coordinator.readingMode == .rsvp {
                 rsvpModeContent
             } else {
-                pageModeContent
+                pageModeContentView
             }
 
             // Chapter navigation bar at the bottom (both modes)
@@ -90,19 +90,19 @@ struct ReadingView: View {
         .onDisappear {
             // Stop playback when leaving the reading view
             coordinator.stop()
-            rsvpPositionSaveTask?.cancel()
+            positionSaveTask?.cancel()
         }
         .onChange(of: coordinator.currentChapterIndex) { _, newChapter in
             // Coordinator reports chapter change (auto-advance)
-            if isRSVPMode && newChapter != currentChapterIndex {
+            if newChapter != currentChapterIndex {
                 currentChapterIndex = newChapter
                 loadChapter(at: newChapter)
             }
         }
         .onChange(of: coordinator.currentWordIndex) { _, _ in
-            // Debounced position save in RSVP mode
-            if isRSVPMode {
-                saveRSVPPositionDebounced()
+            // Debounced position save when playback is active (both modes with TTS or RSVP timer)
+            if coordinator.isPlaying {
+                savePlaybackPositionDebounced()
             }
         }
         .sheet(isPresented: $showVoicePicker) {
@@ -120,24 +120,23 @@ struct ReadingView: View {
     // MARK: - Mode Toggle
 
     private var modeToggle: some View {
-        Picker("Mode", selection: $isRSVPMode) {
-            Text("Page").tag(false)
-            Text("RSVP").tag(true)
+        @Bindable var coordinator = coordinator
+        return Picker("Mode", selection: $coordinator.readingMode) {
+            ForEach(ReadingMode.allCases, id: \.self) { mode in
+                Text(mode.rawValue).tag(mode)
+            }
         }
         .pickerStyle(.segmented)
         .frame(width: 160)
-        .onChange(of: isRSVPMode) { _, newValue in
-            if newValue {
-                // Entering RSVP mode: load book into coordinator
-                let chapterTexts = sortedChapters.map(\.text)
-                coordinator.loadBook(
-                    chapterTexts: chapterTexts,
-                    startChapter: currentChapterIndex,
-                    startWord: 0
+        .onChange(of: coordinator.readingMode) { oldMode, newMode in
+            // switchMode preserves word index and optionally resumes TTS (READ-03)
+            coordinator.switchMode(to: newMode)
+
+            // When switching to page mode, ensure pageParagraphs are computed
+            if newMode == .page {
+                pageParagraphs = pageTextService.splitIntoParagraphs(
+                    text: chapterText, chapterIndex: currentChapterIndex
                 )
-            } else {
-                // Leaving RSVP mode: stop playback
-                coordinator.stop()
             }
         }
     }
@@ -150,8 +149,8 @@ struct ReadingView: View {
                 Rectangle()
                     .fill(Color.secondary.opacity(0.15))
 
-                if isRSVPMode {
-                    // RSVP progress: word-level within current chapter
+                if coordinator.readingMode == .rsvp || coordinator.isPlaying {
+                    // Word-level progress when in RSVP mode or when TTS is active in page mode
                     let wordProgress = coordinator.totalWordCount > 0
                         ? Double(coordinator.currentWordIndex) / Double(coordinator.totalWordCount)
                         : 0.0
@@ -162,6 +161,7 @@ struct ReadingView: View {
                         .fill(Color.accentColor)
                         .frame(width: geometry.size.width * max(0, min(1, overall)))
                 } else {
+                    // Scroll-based progress in page mode without TTS
                     Rectangle()
                         .fill(Color.accentColor)
                         .frame(width: geometry.size.width * positionService.overallProgress)
@@ -203,7 +203,7 @@ struct ReadingView: View {
             }
 
             // Word progress text
-            Text(rsvpWordProgressText)
+            Text(wordProgressText)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, 8)
@@ -212,18 +212,101 @@ struct ReadingView: View {
 
             // WPM Slider (expandable)
             if showWPMSlider {
-                wpmSliderControl
+                wpmSlider
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
             // Controls bar at bottom
-            rsvpControlsBar
+            readingControlsBar
         }
     }
 
-    // MARK: - RSVP Controls Bar
+    // MARK: - Page Mode Content (with PageModeView)
 
-    private var rsvpControlsBar: some View {
+    private var pageModeContentView: some View {
+        VStack(spacing: 0) {
+            // Speed cap banner (shown when TTS is active in page mode)
+            if coordinator.isTTSEnabled {
+                SpeedCapBanner(
+                    message: coordinator.speedCapMessage,
+                    isVisible: coordinator.isSpeedCapped
+                )
+                .animation(.easeInOut(duration: 0.3), value: coordinator.isSpeedCapped)
+            }
+
+            if isBrokenChapter {
+                // PageModeView handles empty paragraphs with placeholder
+                PageModeView(
+                    paragraphs: [],
+                    highlightedWordIndex: nil,
+                    chapterTitle: chapterTitle,
+                    pageTextService: pageTextService
+                )
+            } else if coordinator.isTTSEnabled {
+                // Page mode with TTS: word highlighting and auto-scroll
+                PageModeView(
+                    paragraphs: pageParagraphs,
+                    highlightedWordIndex: coordinator.highlightedWordIndex,
+                    chapterTitle: chapterTitle,
+                    pageTextService: pageTextService
+                )
+            } else {
+                // Page mode without TTS: plain text, manual scrolling, scroll-based position tracking
+                plainPageModeContent
+            }
+
+            // WPM Slider (expandable, only when TTS is enabled in page mode)
+            if coordinator.isTTSEnabled && showWPMSlider {
+                wpmSlider
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            // TTS controls in page mode (only when TTS is enabled)
+            if coordinator.isTTSEnabled {
+                readingControlsBar
+            }
+        }
+    }
+
+    // MARK: - Plain Page Mode (no TTS, manual scrolling)
+
+    /// Page mode without TTS: plain text with scroll-based position tracking.
+    /// Uses the original IdentifiedParagraph model for backward compatibility.
+    private var plainPageModeContent: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                chapterContent
+                    .background(
+                        GeometryReader { geometry in
+                            Color.clear
+                                .preference(
+                                    key: ScrollOffsetKey.self,
+                                    value: geometry.frame(in: .named("scrollArea")).origin.y
+                                )
+                        }
+                    )
+            }
+            .id(currentChapterIndex)
+            .coordinateSpace(name: "scrollArea")
+            .onPreferenceChange(ScrollOffsetKey.self) { offset in
+                handleScrollChange(offset: offset)
+            }
+            .onChange(of: scrollTarget) { _, target in
+                if let target = target {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        proxy.scrollTo(target, anchor: .top)
+                    }
+                    scrollTarget = nil
+                }
+            }
+        }
+    }
+
+    // MARK: - Reading Controls Bar (shared between modes)
+
+    /// Controls bar with TTS toggle, voice picker, play/pause, and WPM display.
+    /// Used in RSVP mode always, and in page mode when TTS is enabled.
+    private var readingControlsBar: some View {
         HStack(spacing: 20) {
             // TTS toggle
             Button {
@@ -290,82 +373,26 @@ struct ReadingView: View {
         .background(.bar)
     }
 
-    // MARK: - WPM Slider
+    // MARK: - WPM Slider (shared component)
 
-    private var wpmSliderControl: some View {
-        VStack(spacing: 4) {
-            HStack {
-                Text("100")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-
-                Slider(
-                    value: $sliderWPM,
-                    in: 100...500,
-                    step: 10
-                ) {
-                    Text("WPM")
-                } onEditingChanged: { editing in
-                    if !editing {
-                        coordinator.setWPM(Int(sliderWPM))
-                        // Sync slider back to effective WPM (may snap due to speed cap)
-                        sliderWPM = Double(coordinator.effectiveWPM)
-                    }
-                }
-                .onChange(of: sliderWPM) { _, newValue in
-                    coordinator.setWPM(Int(newValue))
-                }
-
-                Text("500")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
-            .background(.bar)
-        }
+    private var wpmSlider: some View {
+        WPMSliderView(
+            sliderWPM: $sliderWPM,
+            effectiveWPM: coordinator.effectiveWPM,
+            isSpeedCapped: coordinator.isSpeedCapped,
+            onWPMChanged: { wpm in coordinator.setWPM(wpm) },
+            onWPMChangeEnded: { _ in coordinator.commitWPMChange() }
+        )
     }
 
-    // MARK: - RSVP Progress Text
+    // MARK: - Word Progress Text
 
-    private var rsvpWordProgressText: String {
+    private var wordProgressText: String {
         guard coordinator.totalWordCount > 0 else { return "" }
         return "Word \(coordinator.currentWordIndex + 1) of \(coordinator.totalWordCount)"
     }
 
-    // MARK: - Page Mode Content (existing scroll view)
-
-    private var pageModeContent: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                chapterContent
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .preference(
-                                    key: ScrollOffsetKey.self,
-                                    value: geometry.frame(in: .named("scrollArea")).origin.y
-                                )
-                        }
-                    )
-            }
-            .id(currentChapterIndex)
-            .coordinateSpace(name: "scrollArea")
-            .onPreferenceChange(ScrollOffsetKey.self) { offset in
-                handleScrollChange(offset: offset)
-            }
-            .onChange(of: scrollTarget) { _, target in
-                if let target = target {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        proxy.scrollTo(target, anchor: .top)
-                    }
-                    scrollTarget = nil
-                }
-            }
-        }
-    }
-
-    // MARK: - Chapter Content
+    // MARK: - Chapter Content (plain page mode)
 
     private var chapterContent: some View {
         LazyVStack(alignment: .leading, spacing: 0) {
@@ -461,7 +488,7 @@ struct ReadingView: View {
         return "Chapter \(currentChapterIndex + 1) of \(totalChapters)"
     }
 
-    // MARK: - Scroll Handling
+    // MARK: - Scroll Handling (plain page mode)
 
     @State private var contentHeight: CGFloat = 1.0
     @State private var lastReportedOffset: CGFloat = 0.0
@@ -497,12 +524,13 @@ struct ReadingView: View {
         )
     }
 
-    // MARK: - RSVP Position Saving
+    // MARK: - Playback Position Saving
 
-    /// Debounced position save for RSVP mode (2-second interval matches ReadingPositionService).
-    private func saveRSVPPositionDebounced() {
-        rsvpPositionSaveTask?.cancel()
-        rsvpPositionSaveTask = Task {
+    /// Debounced position save for TTS/RSVP playback (2-second interval matches ReadingPositionService).
+    /// Used in both RSVP mode and page mode with TTS active.
+    private func savePlaybackPositionDebounced() {
+        positionSaveTask?.cancel()
+        positionSaveTask = Task {
             do {
                 try await Task.sleep(nanoseconds: 2_000_000_000)
             } catch {
@@ -539,23 +567,19 @@ struct ReadingView: View {
         let newIndex = currentChapterIndex + direction
         guard newIndex >= 0, newIndex < totalChapters else { return }
 
-        // Stop RSVP if playing
-        if isRSVPMode {
-            coordinator.stop()
-        }
+        // Stop playback if active
+        coordinator.stop()
 
         currentChapterIndex = newIndex
         loadChapter(at: newIndex)
 
-        // Reload coordinator for new chapter in RSVP mode
-        if isRSVPMode {
-            let chapterTexts = sortedChapters.map(\.text)
-            coordinator.loadBook(
-                chapterTexts: chapterTexts,
-                startChapter: newIndex,
-                startWord: 0
-            )
-        }
+        // Reload coordinator for new chapter (always, since book is loaded on init)
+        let chapterTexts = sortedChapters.map(\.text)
+        coordinator.loadBook(
+            chapterTexts: chapterTexts,
+            startChapter: newIndex,
+            startWord: 0
+        )
 
         // Save position at new chapter start
         positionService.savePosition(
@@ -574,6 +598,14 @@ struct ReadingView: View {
         currentChapterIndex = positionService.currentChapterIndex
 
         loadChapter(at: currentChapterIndex)
+
+        // Load book into coordinator on initial appear (both modes need it for position tracking)
+        let chapterTexts = sortedChapters.map(\.text)
+        coordinator.loadBook(
+            chapterTexts: chapterTexts,
+            startChapter: currentChapterIndex,
+            startWord: positionService.currentWordIndex
+        )
 
         // Restore scroll position after a brief delay to let layout settle
         if positionService.currentWordIndex > 0 && !paragraphs.isEmpty {
@@ -597,6 +629,7 @@ struct ReadingView: View {
             chapterTitle = "No Content"
             chapterText = ""
             paragraphs = []
+            pageParagraphs = []
             isBrokenChapter = true
             isLoading = false
             return
@@ -632,8 +665,14 @@ struct ReadingView: View {
             paragraphs = rawParagraphs.enumerated().map { pIndex, text in
                 IdentifiedParagraph(id: "ch\(currentChapterIndex)-p-\(pIndex)", text: text)
             }
+
+            // Also compute pageParagraphs for PageModeView (pre-tokenized with word ranges)
+            pageParagraphs = pageTextService.splitIntoParagraphs(
+                text: chapter.text, chapterIndex: index
+            )
         } else {
             paragraphs = []
+            pageParagraphs = []
         }
 
         // Reset scroll tracking for new chapter
