@@ -25,20 +25,20 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Reading Modes
 
 - [x] **READ-01**: User can read in RSVP mode (single word display at set WPM)
-- [ ] **READ-02**: User can read in page mode (full page with highlighted current word)
+- [x] **READ-02**: User can read in page mode (full page with highlighted current word)
 - [ ] **READ-03**: User can toggle between RSVP and page mode mid-session without losing position
 
 ### TTS & Voice
 
 - [x] **TTS-01**: User can enable text-to-speech that syncs with RSVP word display
-- [ ] **TTS-02**: User can enable text-to-speech that syncs with page mode word highlighting
+- [x] **TTS-02**: User can enable text-to-speech that syncs with page mode word highlighting
 - [x] **TTS-03**: Voice speed caps gracefully when WPM exceeds synthesizer capability
 - [x] **TTS-04**: User can choose from available Apple built-in voices
 - [x] **TTS-05**: User can download enhanced Apple voice packs on demand
 
 ### Controls & Navigation
 
-- [ ] **NAV-01**: User can adjust reading speed via WPM slider (100-500 range)
+- [x] **NAV-01**: User can adjust reading speed via WPM slider (100-500 range)
 - [ ] **NAV-02**: User can navigate via table of contents to jump between chapters
 - [ ] **NAV-03**: User can skip to next/previous chapter with controls
 
@@ -115,10 +115,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TTS-03 | Phase 2: Reading Engine | Complete |
 | TTS-04 | Phase 2: Reading Engine | Complete |
 | TTS-05 | Phase 2: Reading Engine | Complete |
-| READ-02 | Phase 3: Reading Experience | Pending |
+| READ-02 | Phase 3: Reading Experience | Complete |
 | READ-03 | Phase 3: Reading Experience | Pending |
-| TTS-02 | Phase 3: Reading Experience | Pending |
-| NAV-01 | Phase 3: Reading Experience | Pending |
+| TTS-02 | Phase 3: Reading Experience | Complete |
+| NAV-01 | Phase 3: Reading Experience | Complete |
 | NAV-02 | Phase 4: Navigation & Appearance | Pending |
 | NAV-03 | Phase 4: Navigation & Appearance | Pending |
 | APP-01 | Phase 4: Navigation & Appearance | Pending |

@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 3 of 7 (Reading Experience)
-Plan: 0 of 2 in current phase
-Status: Phase 2 complete, ready for Phase 3
-Last activity: 2026-02-20 -- Completed 02-03-PLAN.md (Reading views: RSVPDisplayView, VoicePickerView, SpeedCapBanner, ReadingView integration)
+Plan: 1 of 2 in current phase
+Status: Executing Phase 3
+Last activity: 2026-02-20 -- Completed 03-01-PLAN.md (Page mode engine layer: ReadingMode, PageTextService, ReadingCoordinator extensions)
 
-Progress: [████████░░░░░░░░░░░░] 40%
+Progress: [█████████░░░░░░░░░░░] 47%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: ~6 min
-- Total execution time: ~0.6 hours
+- Total execution time: ~0.7 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [████████░░░░░░░░░░░░] 40%
 |-------|-------|-------|----------|
 | 1. Foundation | 3 | ~24 min | ~8 min |
 | 2. Reading Engine | 3 | multi-session | varies |
+| 3. Reading Experience | 1/2 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: multi-session, 4m, 5m, multi-session, multi-session
-- Trend: checkpoint plans take multiple sessions
+- Last 5 plans: 4m, 5m, multi-session, multi-session, 4m
+- Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
 
@@ -75,6 +76,11 @@ Recent decisions affecting current work:
 - [02-03]: White foreground for RSVP before/after ORP text on dark background (.primary was invisible on black)
 - [02-03]: GeometryReader with half-width frames for ORP character centering at exact screen midpoint
 - [02-03]: Segmented Picker for Page/RSVP mode switching in reading view
+- [03-01]: ReadingMode defaults to .rsvp (preserves existing behavior as primary mode)
+- [03-01]: PageTextService is a struct (stateless service like WordTokenizer, not @Observable)
+- [03-01]: ParagraphData caches WordTokens at split time to avoid re-tokenization per word highlight change
+- [03-01]: highlightedWordIndex returns nil when paused (no frozen highlight in page mode)
+- [03-01]: setWPM only updates RSVPEngine; commitWPMChange debounces TTS restart to slider drag end
 
 ### Pending Todos
 
@@ -89,5 +95,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 02-03-PLAN.md -- Reading views (RSVPDisplayView, VoicePickerView, SpeedCapBanner, ReadingView integration). Phase 2 complete.
+Stopped at: Completed 03-01-PLAN.md -- Page mode engine layer (ReadingMode, PageTextService, ReadingCoordinator extensions for mode switching and debounced WPM).
 Resume file: None
