@@ -56,6 +56,7 @@ struct ReadingView: View {
                                 }
                             )
                     }
+                    .id(currentChapterIndex)
                     .coordinateSpace(name: "scrollArea")
                     .onPreferenceChange(ScrollOffsetKey.self) { offset in
                         handleScrollChange(offset: offset)
