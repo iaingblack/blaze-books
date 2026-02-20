@@ -12,6 +12,12 @@ import SwiftUI
 /// - No animation between words -- instant swap for comfortable high-speed reading
 /// - Dark background for reduced eye strain during extended RSVP sessions
 /// - Vertical guide line provides a subtle fixation anchor for the eye
+///
+/// **Dark mode behavior:** The RSVP view intentionally uses a fixed dark background
+/// (`Color.black`) regardless of system appearance. This is a deliberate design choice
+/// for reading comfort during rapid word display, following the precedent set by Spritz
+/// and similar RSVP readers. The app chrome (navigation bars, controls, chapter navigation)
+/// follows the system dark/light mode setting automatically via SwiftUI semantic colors.
 struct RSVPDisplayView: View {
 
     /// The current word to display, with pre-calculated ORP segments.
@@ -62,7 +68,7 @@ struct RSVPDisplayView: View {
                     // Idle state: subtle dash indicator
                     Text("--")
                         .font(.system(size: 36, weight: .light, design: .monospaced))
-                        .foregroundStyle(.secondary.opacity(0.4))
+                        .foregroundStyle(.white.opacity(0.3))
                         .position(x: halfWidth, y: geometry.size.height / 2)
                 }
             }
