@@ -136,7 +136,7 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-02-20 |
-| 2. Reading Engine | 3/3 | Complete | 2026-02-20 |
+| 2. Reading Engine | 3/3 | Complete    | 2026-02-20 |
 | 3. Reading Experience | 0/2 | Not started | - |
 | 4. Navigation & Appearance | 0/2 | Not started | - |
 | 5. Library | 0/2 | Not started | - |
