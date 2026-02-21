@@ -108,10 +108,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can browse curated Project Gutenberg collections organized by genre
   2. User can download a free book from Gutenberg and it appears in their library ready to read
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — SchemaV3 with gutenbergId, Gutendex API models, GutendexService API client
+- [ ] 06-02-PLAN.md — BookDownloadService, EPUBImportService refactoring, Discovery UI views, LibraryView integration
 
 ### Phase 7: iCloud Sync
 **Goal**: Users can read on one device and continue seamlessly on another
@@ -140,5 +141,5 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | 3. Reading Experience | 2/2 | Complete | 2026-02-20 |
 | 4. Navigation & Appearance | 0/2 | Not started | - |
 | 5. Library | 0/2 | Not started | - |
-| 6. Book Discovery | 0/1 | Not started | - |
+| 6. Book Discovery | 0/2 | Not started | - |
 | 7. iCloud Sync | 0/2 | Not started | - |
