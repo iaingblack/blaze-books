@@ -39,6 +39,8 @@ final class RSVPEngine {
     private var wpm: Int = 250
     @ObservationIgnored
     private let tokenizer = WordTokenizer()
+    @ObservationIgnored
+    private var punctuationPausesEnabled: Bool = true
 
     /// Called when the engine reaches the end of the chapter's word array.
     @ObservationIgnored
@@ -101,6 +103,14 @@ final class RSVPEngine {
             invalidateTimer()
             scheduleNextWord(delay: baseInterval)
         }
+    }
+
+    /// Enables or disables punctuation-aware pauses (sentence-end and clause multipliers).
+    ///
+    /// When disabled, all words use the same base timing with only the length penalty.
+    /// - Parameter enabled: Whether to apply punctuation pause multipliers.
+    func setPunctuationPauses(_ enabled: Bool) {
+        punctuationPausesEnabled = enabled
     }
 
     /// Seeks to a specific word index, updating the displayed word.
@@ -166,12 +176,14 @@ final class RSVPEngine {
         // Length penalty: longer words need more reading time
         multiplier += 0.04 * sqrt(Double(word.text.count))
 
-        // Punctuation-aware pauses
-        let lastChar = word.text.last ?? Character(" ")
-        if ".!?".contains(lastChar) || word.isSentenceEnd {
-            multiplier *= 3.0
-        } else if ",;:".contains(lastChar) {
-            multiplier *= 2.0
+        // Punctuation-aware pauses (skipped when pauses are disabled)
+        if punctuationPausesEnabled {
+            let lastChar = word.text.last ?? Character(" ")
+            if ".!?".contains(lastChar) || word.isSentenceEnd {
+                multiplier *= 3.0
+            } else if ",;:".contains(lastChar) {
+                multiplier *= 2.0
+            }
         }
 
         return baseInterval * multiplier
