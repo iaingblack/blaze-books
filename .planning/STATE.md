@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Synchronized reading and listening -- the voice tracks the displayed word perfectly, whether in RSVP or page mode
-**Current focus:** Phase 6: Book Discovery
+**Current focus:** Phase 7: iCloud Sync
 
 ## Current Position
 
-Phase: 6 of 7 (Book Discovery) -- Gap closure complete
-Plan: 4 of 4 in current phase
-Status: Phase 6 Complete (including gap closure + performance fix)
-Last activity: 2026-02-21 -- Completed 06-04-PLAN.md (Genre browsing performance)
+Phase: 7 of 7 (iCloud Sync)
+Plan: 1 of 2 in current phase
+Status: Plan 07-01 Complete (CloudKit data layer enabled)
+Last activity: 2026-02-21 -- Completed 07-01-PLAN.md (iCloud sync data layer)
 
-Progress: [████████████████░░░░] 84%
+Progress: [█████████████████░░░] 89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: ~5 min
-- Total execution time: ~1.25 hours
+- Total execution time: ~1.4 hours
 
 **By Phase:**
 
@@ -33,15 +33,17 @@ Progress: [████████████████░░░░] 84%
 | 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
 | 5. Library | 2/2 | 8 min | 4 min |
 | 6. Book Discovery | 4/4 | 12 min | 3 min |
+| 7. iCloud Sync | 1/2 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 5m, 3m, 5m, 2m, 2m
-- Trend: non-checkpoint plans complete quickly
+- Last 5 plans: 3m, 5m, 2m, 2m, 8m
+- Trend: checkpoint plans take longer due to human-verify pause
 
 *Updated after each plan completion*
 | Phase 06 P02 | 5min | 2 tasks | 9 files |
 | Phase 06 P03 | 2min | 2 tasks | 2 files |
 | Phase 06 P04 | 2min | 2 tasks | 3 files |
+| Phase 07 P01 | 8min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -117,6 +119,12 @@ Recent decisions affecting current work:
 - [06-04]: Removed all API preloading from DiscoveryView -- genre cards render instantly with fallback gradients (no network dependency)
 - [06-04]: Moved EPUB filtering from server-side (mime_type param) to client-side (epubURL != nil) for ~2x API speed improvement
 - [06-04]: 30-second URLSession timeout instead of 60-second default for fail-fast behavior on slow Gutendex API
+- [07-01]: epubData as @Attribute(.externalStorage) Data? on Book for CloudKit CKAsset sync of EPUB binaries
+- [07-01]: Chapter.text marked @Attribute(.externalStorage) to prevent exceeding 1MB CKRecord limit
+- [07-01]: coverImageData marked @Attribute(.externalStorage) for same CKRecord size safety
+- [07-01]: Lightweight migration V3->V4 (only adding optional properties and attributes)
+- [07-01]: One-time data migration via .task modifier on ContentView reads existing filePath EPUBs into epubData
+- [07-01]: CloudKit private database iCloud.com.blazebooks.BlazeBooks -- no iCloud account degrades silently to local-only
 
 ### Pending Todos
 
@@ -131,5 +139,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 06-04-PLAN.md (Genre browsing performance fix -- Phase 6 gap closure fully complete)
-Resume file: .planning/phases/06-book-discovery/06-04-SUMMARY.md
+Stopped at: Completed 07-01-PLAN.md (iCloud sync data layer -- CloudKit enabled, EPUB data migration)
+Resume file: .planning/phases/07-icloud-sync/07-01-SUMMARY.md

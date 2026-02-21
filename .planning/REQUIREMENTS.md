@@ -54,9 +54,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Sync
 
-- [ ] **SYNC-01**: User's library syncs across devices via iCloud
-- [ ] **SYNC-02**: User's reading positions sync across devices via iCloud
-- [ ] **SYNC-03**: User's shelves sync across devices via iCloud
+- [x] **SYNC-01**: User's library syncs across devices via iCloud
+- [x] **SYNC-02**: User's reading positions sync across devices via iCloud
+- [x] **SYNC-03**: User's shelves sync across devices via iCloud
 
 ## v2 Requirements
 
@@ -129,9 +129,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIB-04 | Phase 5: Library | Complete |
 | DISC-01 | Phase 6: Book Discovery | Complete |
 | DISC-02 | Phase 6: Book Discovery | Complete |
-| SYNC-01 | Phase 7: iCloud Sync | Pending |
-| SYNC-02 | Phase 7: iCloud Sync | Pending |
-| SYNC-03 | Phase 7: iCloud Sync | Pending |
+| SYNC-01 | Phase 7: iCloud Sync | Complete |
+| SYNC-02 | Phase 7: iCloud Sync | Complete |
+| SYNC-03 | Phase 7: iCloud Sync | Complete |
 
 **Coverage:**
 - v1 requirements: 27 total

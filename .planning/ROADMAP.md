@@ -127,7 +127,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — SchemaV4 with CloudKit sync, EPUB data migration, updated import pipeline
+- [x] 07-01-PLAN.md — SchemaV4 with CloudKit sync, EPUB data migration, updated import pipeline
 - [ ] 07-02-PLAN.md — SyncMonitorService, cloud badge on covers, sync indicator in toolbar, undownloaded book guard
 
 ## Progress
@@ -144,4 +144,4 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | 4. Navigation & Appearance | 2/2 | Complete | 2026-02-21 |
 | 5. Library | 2/2 | Complete | 2026-02-21 |
 | 6. Book Discovery | 4/4 | Complete | 2026-02-21 |
-| 7. iCloud Sync | 0/2 | Not started | - |
+| 7. iCloud Sync | 1/2 | In Progress | - |
