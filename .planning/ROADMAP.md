@@ -95,11 +95,11 @@ Plans:
   2. User can create custom shelves and organize books into them
   3. User can remove a book from their library
   4. User sees a "continue reading" section showing recently read books with progress
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — SchemaV2 with Shelf model, Continue Reading section, sortable All Books grid
+- [ ] 05-02-PLAN.md — Shelf management, book context menus, book deletion with file cleanup
 
 ### Phase 6: Book Discovery
 **Goal**: Users can discover and download free public domain books without leaving the app
