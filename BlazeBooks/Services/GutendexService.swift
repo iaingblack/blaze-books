@@ -94,6 +94,40 @@ final class GutendexService {
         }
     }
 
+    func searchBooks(query: String, page: Int = 1) async -> GutendexResponse? {
+        let cacheKey = "search-\(query)-\(page)"
+
+        if let cached = cache[cacheKey],
+           Date().timeIntervalSince(cached.timestamp) < cacheTTL {
+            return cached.response
+        }
+
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        guard var components = URLComponents(string: baseURL) else { return nil }
+        components.queryItems = [
+            URLQueryItem(name: "search", value: query),
+            URLQueryItem(name: "languages", value: "en"),
+            URLQueryItem(name: "page", value: String(page)),
+        ]
+
+        guard let url = components.url else { return nil }
+
+        do {
+            let (data, _) = try await session.data(from: url)
+            let response = try JSONDecoder().decode(GutendexResponse.self, from: data)
+            cache[cacheKey] = CachedResponse(response: response, timestamp: Date())
+            return response
+        } catch is CancellationError {
+            return nil
+        } catch {
+            self.error = "Could not load books. Check your connection."
+            return nil
+        }
+    }
+
     func fetchNextPage(from nextURL: String) async -> GutendexResponse? {
         if let cached = cache[nextURL],
            Date().timeIntervalSince(cached.timestamp) < cacheTTL {
