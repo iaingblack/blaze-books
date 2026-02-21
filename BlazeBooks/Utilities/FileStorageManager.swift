@@ -36,8 +36,16 @@ struct FileStorageManager {
     }
 
     static func computeFileHash(at url: URL) throws -> String {
-        let data = try Data(contentsOf: url)
-        let digest = SHA256.hash(data: data)
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { handle.closeFile() }
+        var hasher = SHA256()
+        while autoreleasepool(invoking: {
+            let chunk = handle.readData(ofLength: 65_536)
+            guard !chunk.isEmpty else { return false }
+            hasher.update(data: chunk)
+            return true
+        }) {}
+        let digest = hasher.finalize()
         return digest.map { String(format: "%02x", $0) }.joined()
     }
 

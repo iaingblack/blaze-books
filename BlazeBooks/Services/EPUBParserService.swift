@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import os
 import ReadiumShared
 import ReadiumStreamer
 import UIKit
@@ -166,27 +167,43 @@ final class EPUBParserService {
         let spineLinks = publication.readingOrder
         guard !spineLinks.isEmpty else { return [] }
 
-        var chapters: [ParsedChapter] = []
         let totalChapters = spineLinks.count
+        let completedCount = OSAllocatedUnfairLock(initialState: 0)
 
-        for (index, spineLink) in spineLinks.enumerated() {
-            let href = spineLink.url().string
-            let chapterTitle = tocTitleMap[href]
-                ?? spineLink.title
-                ?? "Chapter \(index + 1)"
+        let chapters = await withTaskGroup(of: ParsedChapter.self, returning: [ParsedChapter].self) { group in
+            for (index, spineLink) in spineLinks.enumerated() {
+                let href = spineLink.url().string
+                let chapterTitle = tocTitleMap[href]
+                    ?? spineLink.title
+                    ?? "Chapter \(index + 1)"
 
-            let chapter = await extractChapter(
-                from: publication,
-                spineLink: spineLink,
-                title: chapterTitle,
-                index: index
-            )
-            chapters.append(chapter)
+                group.addTask {
+                    let chapter = await self.extractChapter(
+                        from: publication,
+                        spineLink: spineLink,
+                        title: chapterTitle,
+                        index: index
+                    )
+                    let completed = completedCount.withLock { count -> Int in
+                        count += 1
+                        return count
+                    }
+                    await MainActor.run {
+                        self.parseProgress = Double(completed) / Double(totalChapters)
+                    }
+                    return chapter
+                }
+            }
 
-            parseProgress = Double(index + 1) / Double(totalChapters)
+            var results: [ParsedChapter] = []
+            results.reserveCapacity(totalChapters)
+            for await chapter in group {
+                results.append(chapter)
+            }
+            return results
         }
 
-        return chapters
+        return chapters.sorted { $0.index < $1.index }
     }
 
     /// Builds a map from spine href → chapter title using the table of contents.
@@ -310,88 +327,174 @@ final class EPUBParserService {
         return await content.text()
     }
 
-    /// Basic HTML tag stripping as a last resort for text extraction.
+    /// Single-pass HTML tag stripping optimized for EPUB chapter text extraction.
     ///
-    /// Removes HTML tags, collapses whitespace, and decodes common HTML entities.
+    /// Walks the string once, tracking whether we're inside a tag or an ignored block
+    /// (head, script, style, h1-h6). Decodes HTML entities inline and normalizes whitespace.
     private func stripHTML(_ html: String) -> String {
-        var text = html
-
-        // Remove entire <head> block (contains <title> and metadata, not body text)
-        text = text.replacingOccurrences(
-            of: "<head[^>]*>[\\s\\S]*?</head>",
-            with: "",
-            options: .regularExpression
-        )
-
-        // Remove script and style blocks entirely
-        text = text.replacingOccurrences(
-            of: "<(script|style)[^>]*>[\\s\\S]*?</\\1>",
-            with: "",
-            options: .regularExpression
-        )
-
-        // Remove heading tags and their content (chapter title is shown separately)
-        text = text.replacingOccurrences(
-            of: "<h[1-6][^>]*>[\\s\\S]*?</h[1-6]>",
-            with: "\n",
-            options: .regularExpression
-        )
-
-        // Replace block-level tags with newlines
-        text = text.replacingOccurrences(
-            of: "</(p|div|li|tr|br|blockquote)\\s*>",
-            with: "\n",
-            options: .regularExpression
-        )
-
-        // Also handle self-closing <br/> and <br />
-        text = text.replacingOccurrences(
-            of: "<br\\s*/?>",
-            with: "\n",
-            options: .regularExpression
-        )
-
-        // Remove all remaining HTML tags
-        text = text.replacingOccurrences(
-            of: "<[^>]+>",
-            with: "",
-            options: .regularExpression
-        )
-
-        // Decode common HTML entities
-        let entities: [(String, String)] = [
-            ("&amp;", "&"),
-            ("&lt;", "<"),
-            ("&gt;", ">"),
-            ("&quot;", "\""),
-            ("&#39;", "'"),
-            ("&apos;", "'"),
-            ("&nbsp;", " "),
-            ("&mdash;", "\u{2014}"),
-            ("&ndash;", "\u{2013}"),
-            ("&hellip;", "\u{2026}"),
-            ("&lsquo;", "\u{2018}"),
-            ("&rsquo;", "\u{2019}"),
-            ("&ldquo;", "\u{201C}"),
-            ("&rdquo;", "\u{201D}"),
+        // Entity lookup table
+        let entityMap: [String: Character] = [
+            "amp": "&", "lt": "<", "gt": ">", "quot": "\"",
+            "apos": "'", "nbsp": " ",
+            "mdash": "\u{2014}", "ndash": "\u{2013}", "hellip": "\u{2026}",
+            "lsquo": "\u{2018}", "rsquo": "\u{2019}",
+            "ldquo": "\u{201C}", "rdquo": "\u{201D}",
         ]
-        for (entity, replacement) in entities {
-            text = text.replacingOccurrences(of: entity, with: replacement)
+
+        // Ignored block tags whose content we skip entirely
+        let ignoredTags: Set<String> = ["head", "script", "style", "h1", "h2", "h3", "h4", "h5", "h6"]
+        // Block-level closing tags that produce a newline
+        let blockTags: Set<String> = ["p", "div", "li", "tr", "br", "blockquote"]
+
+        var output = ""
+        output.reserveCapacity(html.count / 3)
+
+        var insideTag = false
+        var tagBuffer = ""
+        var ignoredBlock: String? = nil  // the tag name we're currently ignoring
+        var lastWasSpace = false
+        var newlineCount = 0
+
+        for ch in html {
+            if insideTag {
+                if ch == ">" {
+                    insideTag = false
+                    let tag = tagBuffer.lowercased()
+                    tagBuffer = ""
+
+                    // Check for opening ignored blocks: <head>, <script ...>, etc.
+                    if ignoredBlock == nil {
+                        let tagName = extractTagName(from: tag)
+                        if ignoredTags.contains(tagName) && !tag.hasPrefix("/") {
+                            ignoredBlock = tagName
+                            continue
+                        }
+                    }
+
+                    // Check for closing ignored blocks: </head>, </script>, etc.
+                    if let blocked = ignoredBlock {
+                        if tag.hasPrefix("/") {
+                            let closeName = extractTagName(from: String(tag.dropFirst()))
+                            if closeName == blocked {
+                                ignoredBlock = nil
+                                // Heading closings produce a newline
+                                if closeName.count == 2 && closeName.hasPrefix("h") {
+                                    if newlineCount < 2 {
+                                        output.append("\n")
+                                        newlineCount += 1
+                                        lastWasSpace = true
+                                    }
+                                }
+                            }
+                        }
+                        continue
+                    }
+
+                    // Block-level closing tags → newline
+                    if tag.hasPrefix("/") {
+                        let closeName = extractTagName(from: String(tag.dropFirst()))
+                        if blockTags.contains(closeName) && newlineCount < 2 {
+                            output.append("\n")
+                            newlineCount += 1
+                            lastWasSpace = true
+                        }
+                    }
+                    // Self-closing <br/> or <br />
+                    else if tag.hasPrefix("br") && newlineCount < 2 {
+                        output.append("\n")
+                        newlineCount += 1
+                        lastWasSpace = true
+                    }
+                } else {
+                    tagBuffer.append(ch)
+                }
+                continue
+            }
+
+            // Inside ignored block — skip all content
+            if ignoredBlock != nil {
+                if ch == "<" {
+                    insideTag = true
+                    tagBuffer = ""
+                }
+                continue
+            }
+
+            if ch == "<" {
+                insideTag = true
+                tagBuffer = ""
+                continue
+            }
+
+            // Normal character — append with whitespace normalization
+            // (HTML entities like &amp; pass through here and are decoded in a post-pass
+            // on the much smaller stripped text)
+            if ch == "\n" || ch == "\r" {
+                if newlineCount < 2 {
+                    output.append("\n")
+                    newlineCount += 1
+                    lastWasSpace = true
+                }
+            } else if ch == " " || ch == "\t" {
+                if !lastWasSpace {
+                    output.append(" ")
+                    lastWasSpace = true
+                }
+            } else {
+                output.append(ch)
+                lastWasSpace = false
+                newlineCount = 0
+            }
         }
 
-        // Collapse multiple whitespace/newlines
-        text = text.replacingOccurrences(
-            of: "[ \\t]+",
-            with: " ",
-            options: .regularExpression
-        )
-        text = text.replacingOccurrences(
-            of: "\\n{3,}",
-            with: "\n\n",
-            options: .regularExpression
-        )
+        // Decode HTML entities in the stripped text (cheap on clean text)
+        var result = output
+        for (name, replacement) in entityMap {
+            result = result.replacingOccurrences(of: "&\(name);", with: String(replacement))
+        }
+        // Handle numeric entities (&#39;, &#160;, etc.)
+        if result.contains("&#") {
+            var decoded = ""
+            decoded.reserveCapacity(result.count)
+            var i = result.startIndex
+            while i < result.endIndex {
+                if result[i] == "&",
+                   result.index(after: i) < result.endIndex,
+                   result[result.index(after: i)] == "#" {
+                    var j = result.index(i, offsetBy: 2)
+                    var numStr = ""
+                    while j < result.endIndex && result[j] != ";" && numStr.count < 7 {
+                        numStr.append(result[j])
+                        j = result.index(after: j)
+                    }
+                    if j < result.endIndex && result[j] == ";",
+                       let code = UInt32(numStr),
+                       let scalar = Unicode.Scalar(code) {
+                        decoded.append(Character(scalar))
+                        i = result.index(after: j)
+                        continue
+                    }
+                }
+                decoded.append(result[i])
+                i = result.index(after: i)
+            }
+            result = decoded
+        }
 
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Extracts the tag name from a tag string like "div class='x'" → "div".
+    private func extractTagName(from tag: String) -> String {
+        let trimmed = tag.trimmingCharacters(in: .whitespaces)
+        if let spaceIdx = trimmed.firstIndex(where: { $0 == " " || $0 == "\t" || $0 == "/" || $0 == "\n" }) {
+            return String(trimmed[trimmed.startIndex..<spaceIdx])
+        }
+        // Strip trailing / for self-closing tags
+        if trimmed.hasSuffix("/") {
+            return String(trimmed.dropLast())
+        }
+        return trimmed
     }
 }
 
