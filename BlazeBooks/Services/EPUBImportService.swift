@@ -148,6 +148,9 @@ final class EPUBImportService {
         // Compute relative path from Documents/Books/
         let relativePath = localURL.lastPathComponent
 
+        // Read EPUB file data for CloudKit sync
+        let epubFileData = try Data(contentsOf: localURL)
+
         // 5. Create Book record
         let book = Book(
             title: title,
@@ -155,7 +158,8 @@ final class EPUBImportService {
             filePath: relativePath,
             coverImageData: coverData,
             fileHash: fileHash,
-            gutenbergId: gutenbergId
+            gutenbergId: gutenbergId,
+            epubData: epubFileData
         )
         book.chapterCount = parsedBook.chapters.count
 

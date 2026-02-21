@@ -40,4 +40,13 @@ struct FileStorageManager {
         let digest = SHA256.hash(data: data)
         return digest.map { String(format: "%02x", $0) }.joined()
     }
+
+    /// Creates a temporary file from EPUB data for Readium parsing.
+    /// Returns the temporary file URL. Caller is responsible for cleanup.
+    static func temporaryFileURL(from data: Data, filename: String) throws -> URL {
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempURL = tempDir.appendingPathComponent(filename.isEmpty ? "temp.epub" : filename)
+        try data.write(to: tempURL)
+        return tempURL
+    }
 }

@@ -13,12 +13,15 @@ struct BlazeBooksApp: App {
 
     init() {
         do {
-            let config = ModelConfiguration("BlazeBooks")
+            let config = ModelConfiguration(
+                "BlazeBooks",
+                cloudKitDatabase: .private("iCloud.com.blazebooks.BlazeBooks")
+            )
             modelContainer = try ModelContainer(
-                for: SchemaV3.Book.self,
-                SchemaV3.Chapter.self,
-                SchemaV3.ReadingPosition.self,
-                SchemaV3.Shelf.self,
+                for: SchemaV4.Book.self,
+                SchemaV4.Chapter.self,
+                SchemaV4.ReadingPosition.self,
+                SchemaV4.Shelf.self,
                 migrationPlan: BlazeBooksMigrationPlan.self,
                 configurations: config
             )
@@ -53,7 +56,38 @@ struct BlazeBooksApp: App {
                 .environment(speedCapService)
                 .environment(voiceManager)
                 .environment(readingCoordinator)
+                .task {
+                    migrateExistingBooksToEpubData(container: modelContainer)
+                }
         }
         .modelContainer(modelContainer)
+    }
+
+    /// Migrates existing books from file-path storage to epubData storage.
+    /// Runs once after the V3->V4 migration. Books with epubData already set are skipped.
+    @MainActor
+    private func migrateExistingBooksToEpubData(container: ModelContainer) {
+        let context = container.mainContext
+        do {
+            let descriptor = FetchDescriptor<Book>(
+                predicate: #Predicate<Book> { book in
+                    book.epubData == nil
+                }
+            )
+            let booksToMigrate = try context.fetch(descriptor)
+            guard !booksToMigrate.isEmpty else { return }
+
+            for book in booksToMigrate {
+                guard !book.filePath.isEmpty else { continue }
+                let fileURL = FileStorageManager.localURL(for: book.filePath)
+                if let data = try? Data(contentsOf: fileURL) {
+                    book.epubData = data
+                }
+            }
+            try context.save()
+        } catch {
+            // Migration is best-effort; books without epubData will show cloud badge
+            print("EPUB data migration error: \(error)")
+        }
     }
 }
