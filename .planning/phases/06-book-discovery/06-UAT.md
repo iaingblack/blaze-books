@@ -1,9 +1,9 @@
 ---
-status: fix-applied
+status: resolved
 phase: 06-book-discovery
 source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md
 started: 2026-02-21T08:25:00Z
-updated: 2026-02-21T08:43:00Z
+updated: 2026-02-21T08:50:00Z
 ---
 
 ## Current Test
@@ -72,7 +72,7 @@ skipped: 8
 ## Gaps
 
 - truth: "User can tap a genre card to see books within that genre in a grid layout with infinite scroll"
-  status: failed
+  status: resolved
   reason: "User reported: It said refreshing genres again and then I think it timed out. Just a blank page"
   severity: blocker
   test: 3
