@@ -49,6 +49,9 @@ struct TipJarSheet: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .padding(.horizontal, 40)
+                } else {
+                    ProgressView("Loading...")
+                        .controlSize(.large)
                 }
             }
 

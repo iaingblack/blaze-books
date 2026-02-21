@@ -127,7 +127,7 @@ struct LibraryView: View {
                         Image(systemName: "globe.americas")
                     }
 
-                    if !tipJar.hasPurchased && tipJar.product != nil {
+                    if !tipJar.hasPurchased {
                         Button { showTipJarSheet = true } label: {
                             Image(systemName: "heart")
                         }

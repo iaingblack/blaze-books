@@ -50,6 +50,9 @@
             ReferencedContainer = "container:BlazeBooks.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../BlazeBooks/StoreKit/BlazeBooks.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
