@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// Scrollable page mode reading view with word-level TTS highlighting and auto-scroll.
+/// Scrollable page mode reading view with word-level highlighting and auto-scroll.
 ///
 /// Renders chapter text as paragraphs in a `LazyVStack` within a `ScrollViewReader`.
-/// When TTS is active, the currently spoken word is highlighted with a yellow background
-/// via `PageTextService.attributedString(for:highlightedWordIndex:)`. The view auto-scrolls
-/// to keep the paragraph containing the highlighted word centered on screen.
+/// When playback is active (TTS or timer), the currently spoken/paced word is highlighted
+/// with a yellow background via `PageTextService.attributedString(for:highlightedWordIndex:)`.
+/// The view auto-scrolls to keep the paragraph containing the highlighted word centered on screen.
 ///
 /// **Design decisions:**
 /// - Uses `LazyVStack` for memory-efficient paragraph rendering (chapters may have 200+ paragraphs)
@@ -15,6 +15,8 @@ import SwiftUI
 /// - Tracks `lastScrolledParagraph` to avoid redundant scroll animations when highlight
 ///   moves within the same paragraph
 /// - Empty paragraphs array shows a broken chapter placeholder (same as ReadingView)
+/// - Supports scroll offset tracking for manual reading position saves
+/// - Supports initial scroll target for position restoration on reopen
 struct PageModeView: View {
 
     /// Paragraph data from `PageTextService.splitIntoParagraphs`.
@@ -32,6 +34,12 @@ struct PageModeView: View {
 
     /// User-adjustable font size for paragraph text, passed from ReadingView's @AppStorage.
     let readingFontSize: Double
+
+    /// Callback for scroll offset changes during manual reading (for position saving).
+    var onScrollOffsetChange: ((CGFloat) -> Void)? = nil
+
+    /// Paragraph ID to scroll to on initial appear (for position restoration).
+    var initialScrollTarget: String? = nil
 
     /// Tracks the last paragraph we auto-scrolled to, preventing redundant scroll
     /// animations when the highlight moves between words within the same paragraph.
@@ -70,6 +78,19 @@ struct PageModeView: View {
 
                         Spacer().frame(height: 100)
                     }
+                    .background(
+                        GeometryReader { geometry in
+                            Color.clear
+                                .preference(
+                                    key: ScrollOffsetKey.self,
+                                    value: geometry.frame(in: .named("pageScrollArea")).origin.y
+                                )
+                        }
+                    )
+                }
+                .coordinateSpace(name: "pageScrollArea")
+                .onPreferenceChange(ScrollOffsetKey.self) { offset in
+                    onScrollOffsetChange?(offset)
                 }
                 .onChange(of: highlightedWordIndex) { _, newIndex in
                     // Auto-scroll to paragraph containing highlighted word
@@ -83,12 +104,18 @@ struct PageModeView: View {
                     }
                 }
                 .onAppear {
-                    // If highlight is already set on appear (e.g., switching from RSVP while paused),
-                    // scroll to the paragraph containing that word immediately
                     if let idx = highlightedWordIndex,
                        let pIdx = pageTextService.paragraphIndex(forWordIndex: idx, paragraphs: paragraphs) {
+                        // Playback active on appear — scroll to highlighted word's paragraph
                         lastScrolledParagraph = pIdx
                         proxy.scrollTo(paragraphs[pIdx].id, anchor: .center)
+                    } else if let target = initialScrollTarget {
+                        // No playback — restore manual reading position
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                proxy.scrollTo(target, anchor: .top)
+                            }
+                        }
                     }
                 }
             }

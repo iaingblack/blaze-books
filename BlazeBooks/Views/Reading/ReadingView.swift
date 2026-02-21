@@ -39,9 +39,7 @@ struct ReadingView: View {
     @State private var currentChapterIndex: Int = 0
     @State private var chapterText: String = ""
     @State private var chapterTitle: String = ""
-    @State private var paragraphs: [IdentifiedParagraph] = []
     @State private var isLoading: Bool = true
-    @State private var scrollTarget: String?
     @State private var isBrokenChapter: Bool = false
 
     // MARK: - Page Mode State
@@ -50,6 +48,8 @@ struct ReadingView: View {
     @State private var pageTextService = PageTextService()
     /// Pre-computed paragraphs with cached word tokens for page mode highlighting.
     @State private var pageParagraphs: [PageTextService.ParagraphData] = []
+    /// Paragraph ID to scroll to on initial appear for position restoration.
+    @State private var initialPageScrollTarget: String?
 
     // MARK: - Font Size State
 
@@ -297,89 +297,41 @@ struct ReadingView: View {
 
     private var pageModeContentView: some View {
         VStack(spacing: 0) {
-            // Speed cap banner (shown when TTS is active in page mode)
-            if coordinator.isTTSEnabled {
-                SpeedCapBanner(
-                    message: coordinator.speedCapMessage,
-                    isVisible: coordinator.isSpeedCapped
-                )
-                .animation(.easeInOut(duration: 0.3), value: coordinator.isSpeedCapped)
-            }
+            // Speed cap banner (self-hides when isSpeedCapped is false)
+            SpeedCapBanner(
+                message: coordinator.speedCapMessage,
+                isVisible: coordinator.isSpeedCapped
+            )
+            .animation(.easeInOut(duration: 0.3), value: coordinator.isSpeedCapped)
 
-            if isBrokenChapter {
-                // PageModeView handles empty paragraphs with placeholder
-                PageModeView(
-                    paragraphs: [],
-                    highlightedWordIndex: nil,
-                    chapterTitle: chapterTitle,
-                    pageTextService: pageTextService,
-                    readingFontSize: readingFontSize
-                )
-            } else if coordinator.isTTSEnabled {
-                // Page mode with TTS: word highlighting and auto-scroll
-                PageModeView(
-                    paragraphs: pageParagraphs,
-                    highlightedWordIndex: coordinator.highlightedWordIndex,
-                    chapterTitle: chapterTitle,
-                    pageTextService: pageTextService,
-                    readingFontSize: readingFontSize
-                )
-            } else {
-                // Page mode without TTS: plain text, manual scrolling, scroll-based position tracking
-                plainPageModeContent
-            }
+            // PageModeView handles highlighting, auto-scroll, and broken chapter placeholder
+            PageModeView(
+                paragraphs: isBrokenChapter ? [] : pageParagraphs,
+                highlightedWordIndex: coordinator.highlightedWordIndex,
+                chapterTitle: chapterTitle,
+                pageTextService: pageTextService,
+                readingFontSize: readingFontSize,
+                onScrollOffsetChange: { offset in
+                    handleScrollChange(offset: offset)
+                },
+                initialScrollTarget: initialPageScrollTarget
+            )
 
-            // WPM Slider (expandable, only when TTS is enabled in page mode)
-            if coordinator.isTTSEnabled && showWPMSlider {
+            // WPM Slider (expandable)
+            if showWPMSlider {
                 wpmSlider
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
-            // TTS controls in page mode (only when TTS is enabled)
-            if coordinator.isTTSEnabled {
-                readingControlsBar
-            }
-        }
-    }
-
-    // MARK: - Plain Page Mode (no TTS, manual scrolling)
-
-    /// Page mode without TTS: plain text with scroll-based position tracking.
-    /// Uses the original IdentifiedParagraph model for backward compatibility.
-    private var plainPageModeContent: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                chapterContent
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .preference(
-                                    key: ScrollOffsetKey.self,
-                                    value: geometry.frame(in: .named("scrollArea")).origin.y
-                                )
-                        }
-                    )
-            }
-            .id(currentChapterIndex)
-            .coordinateSpace(name: "scrollArea")
-            .onPreferenceChange(ScrollOffsetKey.self) { offset in
-                handleScrollChange(offset: offset)
-            }
-            .onChange(of: scrollTarget) { _, target in
-                if let target = target {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        proxy.scrollTo(target, anchor: .top)
-                    }
-                    scrollTarget = nil
-                }
-            }
+            // Controls bar at bottom (play/pause, TTS toggle, voice picker, WPM)
+            readingControlsBar
         }
     }
 
     // MARK: - Reading Controls Bar (shared between modes)
 
     /// Controls bar with TTS toggle, voice picker, play/pause, and WPM display.
-    /// Used in RSVP mode always, and in page mode when TTS is enabled.
+    /// Used in both RSVP and page modes.
     private var readingControlsBar: some View {
         HStack(spacing: 20) {
             // TTS toggle
@@ -466,63 +418,6 @@ struct ReadingView: View {
         return "Word \(coordinator.currentWordIndex + 1) of \(coordinator.totalWordCount)"
     }
 
-    // MARK: - Chapter Content (plain page mode)
-
-    private var chapterContent: some View {
-        LazyVStack(alignment: .leading, spacing: 0) {
-            // Chapter header
-            Text(chapterTitle)
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
-                .padding(.bottom, 16)
-                .id("chapter-header")
-
-            if isBrokenChapter {
-                brokenChapterPlaceholder
-            } else {
-                // Paragraphs
-                ForEach(paragraphs) { paragraph in
-                    Text(paragraph.text)
-                        .font(.system(size: readingFontSize))
-                        .lineSpacing(readingFontSize * 0.41)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 14)
-                        .id(paragraph.id)
-                }
-            }
-
-            // Bottom spacer for comfortable scrolling
-            Spacer()
-                .frame(height: 100)
-                .id("chapter-end")
-        }
-    }
-
-    // MARK: - Broken Chapter Placeholder
-
-    private var brokenChapterPlaceholder: some View {
-        VStack(spacing: 16) {
-            Spacer()
-                .frame(height: 60)
-
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-
-            Text("This chapter could not be displayed")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 20)
-    }
-
     // MARK: - Chapter Navigation Bar
 
     private var chapterNavigationBar: some View {
@@ -562,7 +457,7 @@ struct ReadingView: View {
         return "Chapter \(currentChapterIndex + 1) of \(totalChapters)"
     }
 
-    // MARK: - Scroll Handling (plain page mode)
+    // MARK: - Scroll Handling (page mode)
 
     @State private var contentHeight: CGFloat = 1.0
     @State private var lastReportedOffset: CGFloat = 0.0
@@ -687,15 +582,13 @@ struct ReadingView: View {
             startWord: positionService.currentWordIndex
         )
 
-        // Restore scroll position after a brief delay to let layout settle
-        if positionService.currentWordIndex > 0 && !paragraphs.isEmpty {
-            let targetParagraphIndex = estimateParagraphFromWordIndex(
-                wordIndex: positionService.currentWordIndex
-            )
-            if targetParagraphIndex < paragraphs.count {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    scrollTarget = paragraphs[targetParagraphIndex].id
-                }
+        // Set initial scroll target for PageModeView position restoration
+        if positionService.currentWordIndex > 0 && !pageParagraphs.isEmpty {
+            if let pIdx = pageTextService.paragraphIndex(
+                forWordIndex: positionService.currentWordIndex,
+                paragraphs: pageParagraphs
+            ) {
+                initialPageScrollTarget = pageParagraphs[pIdx].id
             }
         }
 
@@ -708,7 +601,6 @@ struct ReadingView: View {
         guard index >= 0, index < chapters.count else {
             chapterTitle = "No Content"
             chapterText = ""
-            paragraphs = []
             pageParagraphs = []
             isBrokenChapter = true
             isLoading = false
@@ -724,57 +616,19 @@ struct ReadingView: View {
             chapter.text == "This chapter could not be displayed"
 
         if !isBrokenChapter {
-            // Split text into paragraphs -- handle various line ending styles
-            // EPUBs may use \n\n, \r\n\r\n, or just \n for paragraph breaks
-            let normalizedText = chapter.text
-                .replacingOccurrences(of: "\r\n", with: "\n")
-            let rawParagraphs: [String]
-            if normalizedText.contains("\n\n") {
-                rawParagraphs = normalizedText
-                    .components(separatedBy: "\n\n")
-                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                    .filter { !$0.isEmpty }
-            } else {
-                // Single newline separated -- treat each line as a paragraph
-                rawParagraphs = normalizedText
-                    .components(separatedBy: "\n")
-                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                    .filter { !$0.isEmpty }
-            }
-
-            paragraphs = rawParagraphs.enumerated().map { pIndex, text in
-                IdentifiedParagraph(id: "ch\(currentChapterIndex)-p-\(pIndex)", text: text)
-            }
-
-            // Also compute pageParagraphs for PageModeView (pre-tokenized with word ranges)
+            // Compute pageParagraphs for PageModeView (pre-tokenized with word ranges)
             pageParagraphs = pageTextService.splitIntoParagraphs(
                 text: chapter.text, chapterIndex: index
             )
         } else {
-            paragraphs = []
             pageParagraphs = []
         }
 
         // Reset scroll tracking for new chapter
         contentHeight = 1.0
         lastReportedOffset = 0.0
+        initialPageScrollTarget = nil
         isLoading = false
-    }
-
-    /// Estimates which paragraph contains the given word index.
-    private func estimateParagraphFromWordIndex(wordIndex: Int) -> Int {
-        guard !paragraphs.isEmpty else { return 0 }
-
-        var cumulativeWords = 0
-        for (index, paragraph) in paragraphs.enumerated() {
-            let wordCount = paragraph.text.split(separator: " ").count
-            cumulativeWords += wordCount
-            if cumulativeWords >= wordIndex {
-                return index
-            }
-        }
-
-        return max(0, paragraphs.count - 1)
     }
 
     /// Verifies the restored position using the verification snippet.
@@ -793,12 +647,6 @@ struct ReadingView: View {
 }
 
 // MARK: - Supporting Types
-
-/// A paragraph with a stable ID for ScrollViewReader.
-struct IdentifiedParagraph: Identifiable {
-    let id: String
-    let text: String
-}
 
 /// A trailing icon label style for the "Next" button.
 struct TrailingIconLabelStyle: LabelStyle {
