@@ -5,9 +5,20 @@ import UIKit
 
 /// Handles the full EPUB import flow: security-scoped URL access, file copy to sandbox,
 /// duplicate detection by file hash, Readium parsing, and SwiftData record creation.
+///
+/// Provides two entry points:
+/// - `importEPUB(from:modelContext:)` -- for file-picker imports (handles security-scoped access)
+/// - `importLocalEPUB(at:modelContext:gutenbergId:)` -- for local files already in sandbox (used by BookDownloadService)
 @MainActor
 @Observable
 final class EPUBImportService {
+
+    // MARK: - Error Types
+
+    enum ImportError: Error {
+        case alreadyInLibrary
+        case parseFailed(String)
+    }
 
     // MARK: - Observable State
 
@@ -19,7 +30,7 @@ final class EPUBImportService {
 
     private let parserService = EPUBParserService()
 
-    // MARK: - Import
+    // MARK: - File-Picker Import
 
     /// Imports an EPUB from a file picker URL into the app's library.
     ///
@@ -27,8 +38,7 @@ final class EPUBImportService {
     /// 1. Access the security-scoped resource
     /// 2. Compute file hash for duplicate detection
     /// 3. Copy to app sandbox (Documents/Books/)
-    /// 4. Parse with Readium to extract metadata and chapters
-    /// 5. Persist Book, Chapter, and ReadingPosition records in SwiftData
+    /// 4. Delegate to `importLocalEPUB` for parsing and record creation
     func importEPUB(from url: URL, modelContext: ModelContext) async {
         isImporting = true
         importError = nil
@@ -43,10 +53,10 @@ final class EPUBImportService {
         defer { url.stopAccessingSecurityScopedResource() }
 
         do {
-            // 2. Compute file hash for duplicate detection
+            // 2. Compute file hash for early duplicate detection
             let fileHash = try FileStorageManager.computeFileHash(at: url)
 
-            // 3. Check for duplicate by file hash
+            // 3. Check for duplicate by file hash before copying
             let fetchDescriptor = FetchDescriptor<Book>(
                 predicate: #Predicate<Book> { book in
                     book.fileHash == fileHash
@@ -61,73 +71,119 @@ final class EPUBImportService {
             // 4. Copy file to sandbox
             let localURL = try copyToSandbox(from: url)
 
-            // 5. Parse EPUB with Readium
-            let parsedBook: EPUBParserService.ParsedBook
+            // 5. Import via shared pipeline
             do {
-                parsedBook = try await parserService.parseEPUB(at: localURL)
+                try await importLocalEPUB(
+                    at: localURL,
+                    modelContext: modelContext,
+                    fallbackTitle: filenameWithoutExtension(from: url)
+                )
+                importSuccess = true
+            } catch ImportError.alreadyInLibrary {
+                importError = "Already in your library"
             } catch {
-                // Readium failed completely: delete the copied file, set error, do NOT add to library
+                // Readium failed: delete the copied file
                 try? FileManager.default.removeItem(at: localURL)
                 importError = "Couldn't open this book. It may be damaged or DRM-protected."
-                return
             }
-
-            // 6. Determine metadata with smart fallbacks
-            let title = parsedBook.title.isEmpty
-                ? filenameWithoutExtension(from: url)
-                : parsedBook.title
-            let author = parsedBook.author.isEmpty
-                ? "Unknown Author"
-                : parsedBook.author
-
-            // Convert cover UIImage to JPEG data
-            let coverData = parsedBook.coverData
-
-            // Compute relative path from Documents/Books/
-            let fileName = localURL.lastPathComponent
-            let relativePath = fileName
-
-            // 7. Create Book record
-            let book = Book(
-                title: title,
-                author: author,
-                filePath: relativePath,
-                coverImageData: coverData,
-                fileHash: fileHash
-            )
-            book.chapterCount = parsedBook.chapters.count
-
-            // 8. Create Chapter records
-            var chapters: [Chapter] = []
-            for parsedChapter in parsedBook.chapters {
-                let chapter = Chapter(
-                    title: parsedChapter.title,
-                    index: parsedChapter.index,
-                    text: parsedChapter.text,
-                    wordCount: parsedChapter.parseError ? 0 : parsedChapter.tokens.count
-                )
-                chapter.book = book
-                chapters.append(chapter)
-            }
-            book.chapters = chapters
-
-            // 9. Create ReadingPosition initialized to chapter 0, word 0
-            let readingPosition = ReadingPosition(
-                chapterIndex: 0,
-                wordIndex: 0,
-                verificationSnippet: ""
-            )
-            readingPosition.book = book
-            book.readingPosition = readingPosition
-
-            // 10. Insert all records into ModelContext
-            modelContext.insert(book)
-
-            importSuccess = true
 
         } catch {
             importError = "Failed to import: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Shared Import Pipeline
+
+    /// Imports an EPUB already located in the app sandbox into the library.
+    ///
+    /// Used by both file-picker imports and BookDownloadService. Handles:
+    /// 1. File hash computation and duplicate detection
+    /// 2. Readium EPUB parsing
+    /// 3. Book, Chapter, and ReadingPosition record creation
+    ///
+    /// - Parameters:
+    ///   - localURL: File URL of the EPUB in the app sandbox
+    ///   - modelContext: SwiftData model context for record insertion
+    ///   - gutenbergId: Optional Project Gutenberg ID for provenance tracking
+    ///   - fallbackTitle: Title to use if EPUB metadata has no title (defaults to filename)
+    /// - Throws: `ImportError.alreadyInLibrary` if duplicate detected, or parsing errors
+    func importLocalEPUB(
+        at localURL: URL,
+        modelContext: ModelContext,
+        gutenbergId: Int? = nil,
+        fallbackTitle: String? = nil
+    ) async throws {
+        // 1. Compute file hash for duplicate detection
+        let fileHash = try FileStorageManager.computeFileHash(at: localURL)
+
+        // 2. Check for duplicate by file hash
+        let fetchDescriptor = FetchDescriptor<Book>(
+            predicate: #Predicate<Book> { book in
+                book.fileHash == fileHash
+            }
+        )
+        let existingBooks = try modelContext.fetch(fetchDescriptor)
+        if !existingBooks.isEmpty {
+            throw ImportError.alreadyInLibrary
+        }
+
+        // 3. Parse EPUB with Readium
+        let parsedBook: EPUBParserService.ParsedBook
+        do {
+            parsedBook = try await parserService.parseEPUB(at: localURL)
+        } catch {
+            throw ImportError.parseFailed(error.localizedDescription)
+        }
+
+        // 4. Determine metadata with smart fallbacks
+        let title = parsedBook.title.isEmpty
+            ? (fallbackTitle ?? filenameWithoutExtension(from: localURL))
+            : parsedBook.title
+        let author = parsedBook.author.isEmpty
+            ? "Unknown Author"
+            : parsedBook.author
+
+        let coverData = parsedBook.coverData
+
+        // Compute relative path from Documents/Books/
+        let relativePath = localURL.lastPathComponent
+
+        // 5. Create Book record
+        let book = Book(
+            title: title,
+            author: author,
+            filePath: relativePath,
+            coverImageData: coverData,
+            fileHash: fileHash,
+            gutenbergId: gutenbergId
+        )
+        book.chapterCount = parsedBook.chapters.count
+
+        // 6. Create Chapter records
+        var chapters: [Chapter] = []
+        for parsedChapter in parsedBook.chapters {
+            let chapter = Chapter(
+                title: parsedChapter.title,
+                index: parsedChapter.index,
+                text: parsedChapter.text,
+                wordCount: parsedChapter.parseError ? 0 : parsedChapter.tokens.count
+            )
+            chapter.book = book
+            chapters.append(chapter)
+        }
+        book.chapters = chapters
+
+        // 7. Create ReadingPosition initialized to chapter 0, word 0
+        let readingPosition = ReadingPosition(
+            chapterIndex: 0,
+            wordIndex: 0,
+            verificationSnippet: ""
+        )
+        readingPosition.book = book
+        book.readingPosition = readingPosition
+
+        // 8. Insert all records into ModelContext
+        modelContext.insert(book)
     }
 
     // MARK: - Private Helpers
