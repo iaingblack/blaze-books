@@ -124,11 +124,11 @@ Plans:
   1. User's library (book list and metadata) syncs across devices via iCloud
   2. User's reading positions sync so they can continue on another device where they left off
   3. User's custom shelves sync across devices via iCloud
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — SchemaV4 with CloudKit sync, EPUB data migration, updated import pipeline
+- [ ] 07-02-PLAN.md — SyncMonitorService, cloud badge on covers, sync indicator in toolbar, undownloaded book guard
 
 ## Progress
 
