@@ -24,9 +24,12 @@ struct RSVPDisplayView: View {
     /// When nil, shows a subtle idle indicator.
     let word: ORPWord?
 
-    /// Approximate width of a single monospaced character at the display font size.
-    /// Used to calculate frame widths for ORP centering.
-    private let characterWidth: CGFloat = 21.6 // Monospaced 36pt ~ 21.6pt per character
+    /// User-adjustable font size for RSVP word display.
+    var fontSize: CGFloat = 36
+
+    /// Approximate width of a single monospaced character, scaled to font size.
+    /// Monospaced characters are roughly 0.6x the font size in width.
+    private var characterWidth: CGFloat { fontSize * 0.6 }
 
     var body: some View {
         GeometryReader { geometry in
@@ -62,12 +65,12 @@ struct RSVPDisplayView: View {
                             .foregroundStyle(.white)
                             .frame(width: halfWidth - halfChar, alignment: .leading)
                     }
-                    .font(.system(size: 36, weight: .medium, design: .monospaced))
+                    .font(.system(size: fontSize, weight: .medium, design: .monospaced))
                     .position(x: halfWidth, y: geometry.size.height / 2)
                 } else {
                     // Idle state: subtle dash indicator
                     Text("--")
-                        .font(.system(size: 36, weight: .light, design: .monospaced))
+                        .font(.system(size: fontSize, weight: .light, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.3))
                         .position(x: halfWidth, y: geometry.size.height / 2)
                 }
