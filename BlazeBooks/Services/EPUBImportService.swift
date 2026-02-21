@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Observation
 import SwiftData
@@ -71,12 +72,13 @@ final class EPUBImportService {
             // 4. Copy file to sandbox
             let localURL = try copyToSandbox(from: url)
 
-            // 5. Import via shared pipeline
+            // 5. Import via shared pipeline (pass pre-computed hash to avoid recomputation)
             do {
                 try await importLocalEPUB(
                     at: localURL,
                     modelContext: modelContext,
-                    fallbackTitle: filenameWithoutExtension(from: url)
+                    fallbackTitle: filenameWithoutExtension(from: url),
+                    fileHash: fileHash
                 )
                 importSuccess = true
             } catch ImportError.alreadyInLibrary {
@@ -111,15 +113,16 @@ final class EPUBImportService {
         at localURL: URL,
         modelContext: ModelContext,
         gutenbergId: Int? = nil,
-        fallbackTitle: String? = nil
+        fallbackTitle: String? = nil,
+        fileHash: String? = nil
     ) async throws {
-        // 1. Compute file hash for duplicate detection
-        let fileHash = try FileStorageManager.computeFileHash(at: localURL)
+        // 1. Read file and compute hash off main thread in a single pass
+        let (epubFileData, computedHash) = try await Self.readFileAndHash(at: localURL, precomputedHash: fileHash)
 
         // 2. Check for duplicate by file hash
         let fetchDescriptor = FetchDescriptor<Book>(
             predicate: #Predicate<Book> { book in
-                book.fileHash == fileHash
+                book.fileHash == computedHash
             }
         )
         let existingBooks = try modelContext.fetch(fetchDescriptor)
@@ -148,16 +151,13 @@ final class EPUBImportService {
         // Compute relative path from Documents/Books/
         let relativePath = localURL.lastPathComponent
 
-        // Read EPUB file data for CloudKit sync
-        let epubFileData = try Data(contentsOf: localURL)
-
         // 5. Create Book record
         let book = Book(
             title: title,
             author: author,
             filePath: relativePath,
             coverImageData: coverData,
-            fileHash: fileHash,
+            fileHash: computedHash,
             gutenbergId: gutenbergId,
             epubData: epubFileData
         )
@@ -191,6 +191,21 @@ final class EPUBImportService {
     }
 
     // MARK: - Private Helpers
+
+    /// Reads the file data and computes its SHA256 hash off the main thread in a single pass.
+    /// If a pre-computed hash is provided, reads the file once and returns that hash.
+    private nonisolated static func readFileAndHash(
+        at url: URL,
+        precomputedHash: String?
+    ) async throws -> (Data, String) {
+        let data = try Data(contentsOf: url)
+        if let hash = precomputedHash {
+            return (data, hash)
+        }
+        let digest = SHA256.hash(data: data)
+        let hash = digest.map { String(format: "%02x", $0) }.joined()
+        return (data, hash)
+    }
 
     /// Copies the EPUB file to Documents/Books/, handling filename collisions.
     private func copyToSandbox(from sourceURL: URL) throws -> URL {
