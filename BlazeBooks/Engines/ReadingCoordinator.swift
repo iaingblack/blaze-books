@@ -176,23 +176,32 @@ final class ReadingCoordinator {
     /// Pauses playback in both engines. The current word stays frozen on screen
     /// (locked decision: pause freezes last word).
     func pause() {
+        autoAdvanceTask?.cancel()
+        autoAdvanceTask = nil
         rsvpEngine.pause()
         ttsService.pause()
         stopRSVPObservation()
         isPlaying = false
     }
 
-    /// Resumes playback, backing up 4 words before the pause point for context recovery
-    /// (locked decision: 3-5 word range, using 4).
+    /// Resumes playback from the pause point.
+    ///
+    /// - **TTS on:** Uses `continueSpeaking()` to resume from the exact pause position.
+    ///   AVSpeechSynthesizer tracks its own position internally, so destroying and recreating
+    ///   the synthesizer is unnecessary and error-prone (the speak-from-word approach can only
+    ///   restart from sentence boundaries, not mid-sentence).
+    /// - **TTS off:** Backs up 4 words for context recovery (locked decision: 3-5 word range).
     func resume() {
-        let backedUpIndex = max(0, currentWordIndex - 4)
-        currentWordIndex = backedUpIndex
-        currentWord = rsvpEngine.word(at: backedUpIndex)
-
         if isTTSEnabled {
-            ttsService.stop()
-            ttsService.speak(fromWordIndex: backedUpIndex)
+            if !ttsService.resume() {
+                // Synthesizer doesn't exist (e.g. cold start with restored position) —
+                // fall back to creating a new one from the current word index.
+                ttsService.speak(fromWordIndex: currentWordIndex)
+            }
         } else {
+            let backedUpIndex = max(0, currentWordIndex - 4)
+            currentWordIndex = backedUpIndex
+            currentWord = rsvpEngine.word(at: backedUpIndex)
             rsvpEngine.seekTo(index: backedUpIndex)
             rsvpEngine.play()
             startRSVPObservation()

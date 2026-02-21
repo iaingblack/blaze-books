@@ -166,10 +166,14 @@ final class TTSService {
     }
 
     /// Resumes speech from where it was paused.
-    func resume() {
+    /// - Returns: `true` if the synthesizer existed and successfully continued speaking.
+    @discardableResult
+    func resume() -> Bool {
         if synthesizer?.continueSpeaking() == true {
             isSpeaking = true
+            return true
         }
+        return false
     }
 
     /// Stops speech and destroys the synthesizer instance.
