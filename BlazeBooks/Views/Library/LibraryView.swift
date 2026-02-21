@@ -96,6 +96,8 @@ struct LibraryView: View {
         }
     }
 
+    @Environment(\.colorScheme) private var colorScheme
+
     // MARK: - Body
 
     var body: some View {
@@ -106,8 +108,29 @@ struct LibraryView: View {
                 sectionedLibrary
             }
         }
-        .navigationTitle("Blaze Books")
+        .background(libraryBackground)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 8) {
+                    if let uiImage = UIImage(named: "AppIcon") {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .frame(width: 28, height: 28)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    Text("Blaze Books")
+                        .font(.title3)
+                        .bold()
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(red: 0.91, green: 0.45, blue: 0.05), Color(red: 0.95, green: 0.65, blue: 0.15)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+            }
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: 16) {
                     if tipJar.hasPurchased {
@@ -338,13 +361,23 @@ struct LibraryView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            Image(systemName: "books.vertical")
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
+            if let uiImage = UIImage(named: "AppIcon") {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+            }
 
             Text("No books yet")
                 .font(.title2)
                 .fontWeight(.medium)
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color(red: 0.91, green: 0.45, blue: 0.05), Color(red: 0.95, green: 0.65, blue: 0.15)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
 
             Text("Tap + to import an EPUB from your files.")
                 .font(.subheadline)
@@ -354,5 +387,32 @@ struct LibraryView: View {
 
             Spacer()
         }
+    }
+
+    // MARK: - Background
+
+    private var libraryBackground: some View {
+        Group {
+            if colorScheme == .dark {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.08, green: 0.08, blue: 0.14),
+                        Color(red: 0.06, green: 0.06, blue: 0.08)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            } else {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.99, green: 0.97, blue: 0.95),
+                        Color(red: 0.97, green: 0.96, blue: 0.94)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+        }
+        .ignoresSafeArea()
     }
 }
