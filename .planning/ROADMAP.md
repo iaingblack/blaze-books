@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
 - [x] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
 - [x] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
-- [ ] **Phase 7: iCloud Sync** - Cross-device sync of library, reading positions, and shelves
+- [x] **Phase 7: iCloud Sync** - Cross-device sync of library, reading positions, and shelves
 
 ## Phase Details
 
@@ -144,4 +144,4 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | 4. Navigation & Appearance | 2/2 | Complete | 2026-02-21 |
 | 5. Library | 2/2 | Complete | 2026-02-21 |
 | 6. Book Discovery | 4/4 | Complete | 2026-02-21 |
-| 7. iCloud Sync | 1/2 | In Progress | - |
+| 7. iCloud Sync | 2/2 | Complete | 2026-02-21 |

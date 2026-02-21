@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 7 of 7 (iCloud Sync)
-Plan: 1 of 2 in current phase
-Status: Plan 07-01 Complete (CloudKit data layer enabled)
-Last activity: 2026-02-21 -- Completed 07-01-PLAN.md (iCloud sync data layer)
+Plan: 2 of 2 in current phase
+Status: Phase 07 Complete -- All plans executed
+Last activity: 2026-02-21 -- Completed 07-02-PLAN.md (sync UI indicators)
 
-Progress: [█████████████████░░░] 89%
+Progress: [████████████████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: ~5 min
 - Total execution time: ~1.4 hours
 
@@ -33,17 +33,18 @@ Progress: [█████████████████░░░] 89%
 | 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
 | 5. Library | 2/2 | 8 min | 4 min |
 | 6. Book Discovery | 4/4 | 12 min | 3 min |
-| 7. iCloud Sync | 1/2 | 8 min | 8 min |
+| 7. iCloud Sync | 2/2 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 3m, 5m, 2m, 2m, 8m
-- Trend: checkpoint plans take longer due to human-verify pause
+- Last 5 plans: 5m, 2m, 2m, 8m, 2m
+- Trend: final plan fastest -- pure UI additions on solid foundation
 
 *Updated after each plan completion*
 | Phase 06 P02 | 5min | 2 tasks | 9 files |
 | Phase 06 P03 | 2min | 2 tasks | 2 files |
 | Phase 06 P04 | 2min | 2 tasks | 3 files |
 | Phase 07 P01 | 8min | 3 tasks | 12 files |
+| Phase 07 P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,11 @@ Recent decisions affecting current work:
 - [07-01]: Lightweight migration V3->V4 (only adding optional properties and attributes)
 - [07-01]: One-time data migration via .task modifier on ContentView reads existing filePath EPUBs into epubData
 - [07-01]: CloudKit private database iCloud.com.blazebooks.BlazeBooks -- no iCloud account degrades silently to local-only
+- [07-02]: SyncMonitorService uses 1.5-second isSyncing pulse per NSPersistentStoreRemoteChange notification
+- [07-02]: Cloud badge uses ultraThinMaterial circle with icloud.and.arrow.down in top-right corner of book cover
+- [07-02]: Toolbar sync indicator uses SF Symbol icloud with .pulse symbolEffect
+- [07-02]: Undownloaded book navigation shows friendly placeholder instead of crashing
+- [07-02]: Navigation guard pattern: check model.isDownloaded before presenting data-dependent views
 
 ### Pending Todos
 
@@ -139,5 +145,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 07-01-PLAN.md (iCloud sync data layer -- CloudKit enabled, EPUB data migration)
-Resume file: .planning/phases/07-icloud-sync/07-01-SUMMARY.md
+Stopped at: Completed 07-02-PLAN.md (sync UI indicators -- all phases complete)
+Resume file: .planning/phases/07-icloud-sync/07-02-SUMMARY.md
