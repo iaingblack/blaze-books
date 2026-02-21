@@ -681,7 +681,9 @@ struct ReadingView: View {
         // Simple verification: check if snippet exists in the current chapter text
         if !chapterText.isEmpty && !chapterText.contains(position.verificationSnippet) {
             // Log a warning -- full search-nearby logic deferred to later phases
+            #if DEBUG
             print("[ReadingView] Position verification mismatch: snippet '\(position.verificationSnippet)' not found in chapter \(currentChapterIndex). Position may be approximate.")
+            #endif
         }
     }
 }

@@ -27,7 +27,9 @@ struct LibraryService {
         do {
             try FileStorageManager.deleteFile(filePath)
         } catch {
+            #if DEBUG
             print("[LibraryService] Warning: Could not delete file '\(filePath)': \(error)")
+            #endif
         }
     }
 

@@ -28,7 +28,27 @@ struct BlazeBooksApp: App {
                 configurations: config
             )
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            // Fallback: local-only container without CloudKit sync
+            do {
+                let fallbackConfig = ModelConfiguration("BlazeBooks")
+                modelContainer = try ModelContainer(
+                    for: SchemaV4.Book.self,
+                    SchemaV4.Chapter.self,
+                    SchemaV4.ReadingPosition.self,
+                    SchemaV4.Shelf.self,
+                    migrationPlan: BlazeBooksMigrationPlan.self,
+                    configurations: fallbackConfig
+                )
+            } catch {
+                // Last resort: in-memory container to prevent crash on launch
+                modelContainer = try! ModelContainer(
+                    for: SchemaV4.Book.self,
+                    SchemaV4.Chapter.self,
+                    SchemaV4.ReadingPosition.self,
+                    SchemaV4.Shelf.self,
+                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                )
+            }
         }
 
         // Create Phase 2 services
@@ -100,7 +120,9 @@ struct BlazeBooksApp: App {
             try context.save()
         } catch {
             // Migration is best-effort; books without epubData will show cloud badge
+            #if DEBUG
             print("EPUB data migration error: \(error)")
+            #endif
         }
     }
 }
