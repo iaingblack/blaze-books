@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
 - [ ] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
 - [ ] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
-- [x] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
+- [ ] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
 - [ ] **Phase 7: iCloud Sync** - Cross-device sync of library, reading positions, and shelves
 
 ## Phase Details
@@ -108,11 +108,12 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can browse curated Project Gutenberg collections organized by genre
   2. User can download a free book from Gutenberg and it appears in their library ready to read
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 - [x] 06-01-PLAN.md — SchemaV3 with gutenbergId, Gutendex API models, GutendexService API client
 - [x] 06-02-PLAN.md — BookDownloadService, EPUBImportService refactoring, Discovery UI views, LibraryView integration
+- [ ] 06-03-PLAN.md — Fix genre browsing blank page (CancellationError handling, retry UI)
 
 ### Phase 7: iCloud Sync
 **Goal**: Users can read on one device and continue seamlessly on another
@@ -141,5 +142,5 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | 3. Reading Experience | 2/2 | Complete | 2026-02-20 |
 | 4. Navigation & Appearance | 0/2 | Not started | - |
 | 5. Library | 0/2 | Not started | - |
-| 6. Book Discovery | 0/2 | Not started | - |
+| 6. Book Discovery | 2/3 | Gap closure | - |
 | 7. iCloud Sync | 0/2 | Not started | - |
