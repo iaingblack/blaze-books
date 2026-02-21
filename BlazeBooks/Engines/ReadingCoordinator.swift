@@ -146,19 +146,17 @@ final class ReadingCoordinator {
     ///
     /// - **TTS on:** Starts speech from the current word index; TTS word-boundary callbacks
     ///   drive RSVP/page display updates.
-    /// - **TTS off, RSVP mode:** Starts RSVPEngine timer; subscribes to its currentWord changes.
-    /// - **TTS off, page mode:** No-op for timer -- page mode without TTS is passive scrolling
-    ///   (user reads at their own pace; no RSVP timer needed).
+    /// - **TTS off:** Starts RSVPEngine timer; subscribes to its currentWord changes.
+    ///   In RSVP mode this drives the word display; in page mode it drives word highlighting.
     func play() {
         if isTTSEnabled {
             ttsService.speak(fromWordIndex: currentWordIndex)
-        } else if readingMode == .rsvp {
-            // RSVP mode without TTS: RSVPEngine timer drives word advancement
+        } else {
+            // Timer drives word advancement (RSVP display or page mode highlighting)
             rsvpEngine.seekTo(index: currentWordIndex)
             rsvpEngine.play()
             startRSVPObservation()
         }
-        // Page mode without TTS: no timer needed (passive scroll reading)
         isPlaying = true
     }
 
