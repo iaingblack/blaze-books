@@ -10,6 +10,7 @@ struct BlazeBooksApp: App {
     @State private var speedCapService = SpeedCapService()
     @State private var voiceManager = VoiceManager()
     @State private var readingCoordinator: ReadingCoordinator
+    @State private var syncMonitor = SyncMonitorService()
 
     init() {
         do {
@@ -45,6 +46,10 @@ struct BlazeBooksApp: App {
 
         let downloadSvc = BookDownloadService(importService: importSvc)
         _downloadService = State(initialValue: downloadSvc)
+
+        // Create Phase 7 services
+        let syncMon = SyncMonitorService()
+        _syncMonitor = State(initialValue: syncMon)
     }
 
     var body: some Scene {
@@ -56,8 +61,10 @@ struct BlazeBooksApp: App {
                 .environment(speedCapService)
                 .environment(voiceManager)
                 .environment(readingCoordinator)
+                .environment(syncMonitor)
                 .task {
                     migrateExistingBooksToEpubData(container: modelContainer)
+                    syncMonitor.startMonitoring(container: modelContainer)
                 }
         }
         .modelContainer(modelContainer)

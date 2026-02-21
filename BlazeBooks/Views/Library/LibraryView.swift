@@ -27,6 +27,7 @@ struct LibraryView: View {
     @Query(sort: \Book.importDate, order: .reverse) private var books: [Book]
     @Query(sort: \Shelf.createdDate) private var shelves: [Shelf]
     @Environment(EPUBImportService.self) private var importService
+    @Environment(SyncMonitorService.self) private var syncMonitor
     @Environment(\.modelContext) private var modelContext
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -118,7 +119,17 @@ struct LibraryView: View {
                     } label: {
                         Image(systemName: "globe.americas")
                     }
+
+                    // Sync indicator (only visible while syncing)
+                    if syncMonitor.isSyncing {
+                        Image(systemName: "icloud")
+                            .symbolEffect(.pulse, isActive: true)
+                            .foregroundStyle(.secondary)
+                            .font(.body)
+                            .transition(.opacity)
+                    }
                 }
+                .animation(.easeInOut(duration: 0.3), value: syncMonitor.isSyncing)
             }
             ToolbarItem(placement: .primaryAction) {
                 ImportButton()
