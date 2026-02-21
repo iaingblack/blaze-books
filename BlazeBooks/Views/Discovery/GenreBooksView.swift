@@ -19,6 +19,7 @@ struct GenreBooksView: View {
     @State private var nextPageURL: String? = nil
     @State private var isLoadingMore = false
     @State private var isInitialLoad = true
+    @State private var loadFailed = false
     @State private var selectedBook: GutendexBook? = nil
 
     private let columns = [
@@ -33,6 +34,27 @@ struct GenreBooksView: View {
                     ProgressView("Loading books...")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+            } else if loadFailed && books.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer(minLength: 80)
+                    Image(systemName: "wifi.exclamationmark")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text("Could not load books")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text("Check your connection and try again.")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                    Button("Retry") {
+                        isInitialLoad = true
+                        loadFailed = false
+                        Task { await loadInitialBooks() }
+                    }
+                    .buttonStyle(.borderedProminent)
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -191,13 +213,21 @@ struct GenreBooksView: View {
 
     private func loadInitialBooks() async {
         guard books.isEmpty else { return }
+        loadFailed = false
 
         let response = await gutendexService.fetchBooks(topic: genre.topic, page: 1)
         if let response = response {
             books = response.results
             nextPageURL = response.next
+            isInitialLoad = false
+        } else if !Task.isCancelled {
+            // Only treat as failure if the task was not cancelled
+            // (cancelled tasks will re-run when SwiftUI re-creates .task)
+            loadFailed = true
+            isInitialLoad = false
         }
-        isInitialLoad = false
+        // If Task.isCancelled, leave isInitialLoad = true so the
+        // next .task invocation retries automatically
     }
 
     private func loadNextPage() async {
