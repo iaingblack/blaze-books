@@ -61,7 +61,7 @@ struct GutendexPerson: Codable {
     }
 }
 
-struct Genre: Identifiable {
+struct Genre: Identifiable, Hashable {
     let id: UUID
     let name: String
     let topic: String
@@ -72,6 +72,15 @@ struct Genre: Identifiable {
         self.name = name
         self.topic = topic
         self.systemImage = systemImage
+    }
+
+    // Hash by topic (unique, stable) rather than UUID (generated fresh each init)
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(topic)
+    }
+
+    static func == (lhs: Genre, rhs: Genre) -> Bool {
+        lhs.topic == rhs.topic
     }
 
     static let all: [Genre] = [

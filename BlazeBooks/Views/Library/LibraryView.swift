@@ -113,6 +113,11 @@ struct LibraryView: View {
                     } label: {
                         Image(systemName: "folder.badge.plus")
                     }
+                    NavigationLink {
+                        DiscoveryView()
+                    } label: {
+                        Image(systemName: "globe.americas")
+                    }
                 }
             }
             ToolbarItem(placement: .primaryAction) {

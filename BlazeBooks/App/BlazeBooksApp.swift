@@ -5,6 +5,8 @@ import SwiftUI
 struct BlazeBooksApp: App {
     let modelContainer: ModelContainer
     @State private var importService = EPUBImportService()
+    @State private var gutendexService = GutendexService()
+    @State private var downloadService: BookDownloadService
     @State private var speedCapService = SpeedCapService()
     @State private var voiceManager = VoiceManager()
     @State private var readingCoordinator: ReadingCoordinator
@@ -33,12 +35,21 @@ struct BlazeBooksApp: App {
 
         let coordinator = ReadingCoordinator(speedCapService: speedCap)
         _readingCoordinator = State(initialValue: coordinator)
+
+        // Create Phase 6 services
+        let importSvc = EPUBImportService()
+        _importService = State(initialValue: importSvc)
+
+        let downloadSvc = BookDownloadService(importService: importSvc)
+        _downloadService = State(initialValue: downloadSvc)
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(importService)
+                .environment(gutendexService)
+                .environment(downloadService)
                 .environment(speedCapService)
                 .environment(voiceManager)
                 .environment(readingCoordinator)
