@@ -217,7 +217,7 @@ struct GenreBooksView: View {
 
         let response = await gutendexService.fetchBooks(topic: genre.topic, page: 1)
         if let response = response {
-            books = response.results
+            books = response.results.filter { $0.epubURL != nil }
             nextPageURL = response.next
             isInitialLoad = false
         } else if !Task.isCancelled {
@@ -236,7 +236,7 @@ struct GenreBooksView: View {
         isLoadingMore = true
         let response = await gutendexService.fetchNextPage(from: nextURL)
         if let response = response {
-            books.append(contentsOf: response.results)
+            books.append(contentsOf: response.results.filter { $0.epubURL != nil })
             nextPageURL = response.next
         }
         isLoadingMore = false
