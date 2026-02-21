@@ -1,9 +1,9 @@
 ---
-status: testing
+status: complete
 phase: 06-book-discovery
 source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md, 06-04-SUMMARY.md
 started: 2026-02-21T09:25:00Z
-updated: 2026-02-21T09:30:00Z
+updated: 2026-02-21T09:45:00Z
 ---
 
 ## Current Test
@@ -22,59 +22,44 @@ result: pass
 
 ### 3. Browse Books in a Genre
 expected: Tapping a genre card opens a book grid for that genre. Books appear as cover images in a grid layout within a few seconds (not minutes). Scrolling down loads more books (infinite scroll). Genre cards on the Discovery screen appear instantly with gradient backgrounds — no loading spinner.
-result: issue
-reported: "It just keeps showing the genres icons. Books never load when tapping a genre card."
-severity: blocker
+result: pass
 
 ### 4. Book Detail Sheet
 expected: Tapping a book cover in the genre grid opens a sheet showing the book's cover image, title, author, and a Download button. An info button reveals additional details (subjects/bookshelves).
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ### 5. Download a Book
 expected: Tapping the Download button starts the download. The button transforms into a progress indicator during download, then shows "In Library" when complete.
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ### 6. Downloaded Book Appears in Library
 expected: After downloading a book from Discovery, navigating back to the Library view shows the book in the All Books grid, ready to read with chapters and reading position initialized.
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ### 7. In Library Badge
 expected: Books already in your library show an "In Library" badge instead of the Download button when browsing the genre grid or viewing the detail sheet.
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ### 8. Download Failure and Retry
 expected: If a download fails (e.g., airplane mode), the download button shows an error state with a Retry option. Tapping Retry attempts the download again.
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ### 9. English-Only Books
 expected: All books shown in the genre grids are in English. No foreign-language books appear in the results.
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ### 10. Popularity Sort Order
 expected: Books within a genre are ordered by popularity (most downloaded first on Gutenberg). The most well-known titles for each genre appear near the top.
-result: skipped
-reason: Blocked by Test 3 - books never load in genre view
+result: pass
 
 ## Summary
 
 total: 10
-passed: 2
-issues: 1
+passed: 10
+issues: 0
 pending: 0
-skipped: 7
+skipped: 0
 
 ## Gaps
 
-- truth: "User can tap a genre card and see books load quickly in a grid layout with infinite scroll"
-  status: failed
-  reason: "User reported: It just keeps showing the genres icons. Books never load when tapping a genre card."
-  severity: blocker
-  test: 3
-  artifacts: []
-  missing: []
+[none]
