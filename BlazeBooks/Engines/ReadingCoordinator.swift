@@ -32,6 +32,9 @@ final class ReadingCoordinator {
     var currentWord: ORPWord?
     /// Whether reading is active (either Timer or TTS mode).
     var isPlaying: Bool = false
+    /// Whether playback has been active at least once since the chapter loaded.
+    /// Used to keep the word highlight visible after pausing.
+    var hasPlayedInChapter: Bool = false
     /// TTS toggle -- default OFF (silent RSVP is the primary mode, TTS is the enhancement).
     var isTTSEnabled: Bool = false
     /// User's requested WPM.
@@ -54,13 +57,12 @@ final class ReadingCoordinator {
     /// Index of the current chapter (zero-based).
     var currentChapterIndex: Int = 0
 
-    /// The word index currently highlighted in page mode (driven by TTS callbacks).
+    /// The word index currently highlighted in page mode.
     ///
-    /// Returns `currentWordIndex` when playing, `nil` when paused. Page mode views observe this
-    /// to show/hide word highlighting. When nil (paused), no word is highlighted in page mode
-    /// (per Research recommendation: no "frozen highlight" when TTS is off).
+    /// Returns `currentWordIndex` when playing or when paused after playback has started,
+    /// so the user can see their position. Returns `nil` before first play.
     var highlightedWordIndex: Int? {
-        isPlaying ? currentWordIndex : nil
+        hasPlayedInChapter ? currentWordIndex : nil
     }
 
     // MARK: - Private State
@@ -153,6 +155,7 @@ final class ReadingCoordinator {
         totalWordCount = rsvpEngine.wordCount
         currentWordIndex = startWord
         currentWord = rsvpEngine.word(at: startWord)
+        hasPlayedInChapter = false
     }
 
     /// Starts playback in the current mode (Timer or TTS).
@@ -171,6 +174,7 @@ final class ReadingCoordinator {
             startRSVPObservation()
         }
         isPlaying = true
+        hasPlayedInChapter = true
     }
 
     /// Pauses playback in both engines. The current word stays frozen on screen
@@ -207,6 +211,7 @@ final class ReadingCoordinator {
             startRSVPObservation()
         }
         isPlaying = true
+        hasPlayedInChapter = true
     }
 
     /// Stops playback completely in both engines.

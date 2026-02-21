@@ -34,6 +34,15 @@ final class TTSService {
     private var sentenceQueue: [(text: String, wordOffset: Int)] = []
     @ObservationIgnored
     private var currentSentenceIndex: Int = 0
+    /// One-time override for the first sentence spoken after `speak(fromWordIndex:)`.
+    /// When non-nil, `speakNextSentence()` uses this text (and wordOffset) instead of
+    /// the sentence queue entry, then clears it. This avoids mutating the queue.
+    @ObservationIgnored
+    private var firstSentenceOverride: (text: String, wordOffset: Int)?
+    /// The word offset of the currently-speaking sentence. Updated by `speakNextSentence()`
+    /// so word boundary callbacks report correct global indices even when an override is used.
+    @ObservationIgnored
+    private var activeSentenceWordOffset: Int = 0
     @ObservationIgnored
     private var selectedVoiceIdentifier: String?
 
@@ -123,10 +132,11 @@ final class TTSService {
 
     // MARK: - Playback Controls
 
-    /// Starts speaking from the sentence containing the given global word index.
+    /// Starts speaking from the given global word index.
     ///
-    /// Creates a fresh `AVSpeechSynthesizer` instance (per anti-pattern: recreate, don't reuse)
-    /// and sets `usesApplicationAudioSession = false` per WWDC 2020 recommendation.
+    /// Finds the sentence containing `fromWordIndex`, trims it to start from
+    /// that word (so TTS doesn't replay earlier words in the sentence), and
+    /// creates a fresh `AVSpeechSynthesizer` instance (per Pitfall 2: recreate, don't reuse).
     ///
     /// - Parameter fromWordIndex: The global word index to start speaking from.
     func speak(fromWordIndex: Int) {
@@ -144,6 +154,20 @@ final class TTSService {
                 // Last sentence
                 targetSentenceIndex = index
             }
+        }
+
+        // Trim the target sentence to start from the requested word.
+        // Without this, TTS replays from the sentence beginning — which for
+        // single-sentence mode (punctuation pauses off) means the entire chapter.
+        let sentence = sentenceQueue[targetSentenceIndex]
+        let localWordIndex = fromWordIndex - sentence.wordOffset
+        if localWordIndex > 0 {
+            let trimmed = trimSentenceToWord(sentence.text, skipWords: localWordIndex)
+            if !trimmed.isEmpty {
+                firstSentenceOverride = (text: trimmed, wordOffset: fromWordIndex)
+            }
+        } else {
+            firstSentenceOverride = nil
         }
 
         currentSentenceIndex = targetSentenceIndex
@@ -220,7 +244,15 @@ final class TTSService {
             return
         }
 
-        let sentence = sentenceQueue[currentSentenceIndex]
+        // Use the one-time override for the first sentence if available
+        let sentence: (text: String, wordOffset: Int)
+        if let override = firstSentenceOverride {
+            sentence = override
+            firstSentenceOverride = nil
+        } else {
+            sentence = sentenceQueue[currentSentenceIndex]
+        }
+        activeSentenceWordOffset = sentence.wordOffset
         let utterance = AVSpeechUtterance(string: sentence.text)
 
         // Configure voice
@@ -236,6 +268,34 @@ final class TTSService {
         utterance.postUtteranceDelay = 0.05 // Tiny gap between sentences for natural flow
 
         synthesizer?.speak(utterance)
+    }
+
+    /// Trims a sentence string by skipping the first N words, returning the remainder.
+    ///
+    /// Uses `NLTokenizer(unit: .word)` consistent with all other word counting in the app.
+    ///
+    /// - Parameters:
+    ///   - text: The full sentence text.
+    ///   - skipWords: Number of words to skip from the beginning.
+    /// - Returns: The substring starting from the target word, or empty if out of range.
+    private func trimSentenceToWord(_ text: String, skipWords: Int) -> String {
+        let wordTokenizer = NLTokenizer(unit: .word)
+        wordTokenizer.string = text
+        wordTokenizer.setLanguage(.english)
+
+        var wordsSkipped = 0
+        var targetStart: String.Index?
+        wordTokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { tokenRange, _ in
+            if wordsSkipped == skipWords {
+                targetStart = tokenRange.lowerBound
+                return false
+            }
+            wordsSkipped += 1
+            return true
+        }
+
+        guard let start = targetStart else { return "" }
+        return String(text[start...])
     }
 
     /// Converts a character range within a sentence to a word index.
@@ -289,8 +349,7 @@ final class TTSService {
 
             let sentenceText = utterance.speechString
             let localWordIndex = owner.wordIndexFromCharRange(characterRange, in: sentenceText)
-            let sentenceOffset = owner.sentenceQueue[owner.currentSentenceIndex].wordOffset
-            let globalIndex = sentenceOffset + localWordIndex
+            let globalIndex = owner.activeSentenceWordOffset + localWordIndex
 
             Task { @MainActor in
                 owner.currentGlobalWordIndex = globalIndex
