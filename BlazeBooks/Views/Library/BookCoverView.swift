@@ -4,9 +4,17 @@ import SwiftUI
 ///
 /// Shows the book title below the cover. If the book is currently being
 /// imported, overlays a ProgressView spinner.
+///
+/// When `onDelete` is non-nil, a long-press context menu provides:
+/// - "Add to Shelf" submenu with toggle checkmarks for each shelf
+/// - "Delete Book" destructive action
 struct BookCoverView: View {
     let book: Book
     var isImporting: Bool = false
+    var shelves: [Shelf] = []
+    var onDelete: (() -> Void)? = nil
+    var onAddToShelf: ((Shelf) -> Void)? = nil
+    var onRemoveFromShelf: ((Shelf) -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -49,6 +57,13 @@ struct BookCoverView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
+        .modifier(BookContextMenuModifier(
+            book: book,
+            shelves: shelves,
+            onDelete: onDelete,
+            onAddToShelf: onAddToShelf,
+            onRemoveFromShelf: onRemoveFromShelf
+        ))
     }
 
     // MARK: - Placeholder Cover
@@ -97,5 +112,60 @@ struct BookCoverView: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+}
+
+// MARK: - Context Menu Modifier
+
+/// Conditionally applies a context menu to book covers when `onDelete` is provided.
+///
+/// Only shows the context menu in management contexts (Library grid, shelf sections)
+/// -- not in ContinueReadingSection where management isn't needed.
+private struct BookContextMenuModifier: ViewModifier {
+    let book: Book
+    let shelves: [Shelf]
+    let onDelete: (() -> Void)?
+    let onAddToShelf: ((Shelf) -> Void)?
+    let onRemoveFromShelf: ((Shelf) -> Void)?
+
+    func body(content: Content) -> some View {
+        if let onDelete {
+            content.contextMenu {
+                // Shelf assignment submenu
+                Menu("Add to Shelf") {
+                    if shelves.isEmpty {
+                        Text("No shelves")
+                    } else {
+                        ForEach(shelves) { shelf in
+                            let isInShelf = shelf.books?.contains(where: { $0.id == book.id }) ?? false
+                            Button {
+                                if isInShelf {
+                                    onRemoveFromShelf?(shelf)
+                                } else {
+                                    onAddToShelf?(shelf)
+                                }
+                            } label: {
+                                if isInShelf {
+                                    Label(shelf.name, systemImage: "checkmark")
+                                } else {
+                                    Text(shelf.name)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Divider()
+
+                // Delete action
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Label("Delete Book", systemImage: "trash")
+                }
+            }
+        } else {
+            content
+        }
     }
 }

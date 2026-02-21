@@ -15,21 +15,39 @@ enum BookSortOption: String, CaseIterable {
 ///
 /// Layout (top to bottom):
 /// 1. **Continue Reading** -- horizontal scroll of up to 4 recently read books with progress bars
-/// 2. **Shelf Sections** -- (placeholder for Plan 02)
+/// 2. **Shelf Sections** -- collapsible DisclosureGroup sections for each user-created shelf
 /// 3. **All Books** -- sortable grid of all imported books
 ///
 /// Uses `@Query` to fetch all books sorted by import date (newest first).
 /// Shows an empty state when no books are imported. Each book cover links
 /// to the reading view. Import errors and success indicators are shown
-/// as alerts/toasts.
+/// as alerts/toasts. Long-press context menus on book covers provide shelf
+/// assignment and book deletion.
 struct LibraryView: View {
     @Query(sort: \Book.importDate, order: .reverse) private var books: [Book]
     @Query(sort: \Shelf.createdDate) private var shelves: [Shelf]
     @Environment(EPUBImportService.self) private var importService
+    @Environment(\.modelContext) private var modelContext
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var recentlyImportedBookID: UUID?
     @State private var sortOption: BookSortOption = .dateAdded
+
+    // Book deletion state
+    @State private var bookToDelete: Book?
+    @State private var showDeleteConfirmation = false
+
+    // Shelf expansion state (per research Pitfall 4: keyed by UUID to survive re-renders)
+    @State private var shelfExpanded: [UUID: Bool] = [:]
+
+    // New shelf alert state
+    @State private var showNewShelfAlert = false
+    @State private var newShelfName = ""
+
+    // Rename shelf alert state
+    @State private var shelfToRename: Shelf?
+    @State private var renameShelfName = ""
+    @State private var showRenameShelfAlert = false
 
     private let columns = [
         GridItem(.adaptive(minimum: 120), spacing: 16)
@@ -88,7 +106,14 @@ struct LibraryView: View {
         .navigationTitle("Blaze Books")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                sortMenu
+                HStack(spacing: 16) {
+                    sortMenu
+                    Button {
+                        showNewShelfAlert = true
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
+                    }
+                }
             }
             ToolbarItem(placement: .primaryAction) {
                 ImportButton()
@@ -122,6 +147,55 @@ struct LibraryView: View {
         } message: {
             Text(errorMessage)
         }
+        // Book deletion confirmation
+        .confirmationDialog(
+            "Delete \(bookToDelete?.title ?? "Book")?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Book", role: .destructive) {
+                if let book = bookToDelete {
+                    LibraryService.deleteBook(book, modelContext: modelContext)
+                    bookToDelete = nil
+                }
+            }
+        } message: {
+            Text("This will permanently remove the book and its file.")
+        }
+        // New shelf alert
+        .alert("New Shelf", isPresented: $showNewShelfAlert) {
+            TextField("Shelf name", text: $newShelfName)
+            Button("Create") {
+                let trimmed = newShelfName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    LibraryService.createShelf(name: trimmed, modelContext: modelContext)
+                }
+                newShelfName = ""
+            }
+            Button("Cancel", role: .cancel) {
+                newShelfName = ""
+            }
+        } message: {
+            Text("Enter a name for your new shelf.")
+        }
+        // Rename shelf alert
+        .alert("Rename Shelf", isPresented: $showRenameShelfAlert) {
+            TextField("Shelf name", text: $renameShelfName)
+            Button("Save") {
+                let trimmed = renameShelfName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let shelf = shelfToRename, !trimmed.isEmpty {
+                    LibraryService.renameShelf(shelf, to: trimmed)
+                }
+                shelfToRename = nil
+                renameShelfName = ""
+            }
+            Button("Cancel", role: .cancel) {
+                shelfToRename = nil
+                renameShelfName = ""
+            }
+        } message: {
+            Text("Enter a new name for this shelf.")
+        }
     }
 
     // MARK: - Sectioned Library
@@ -132,10 +206,37 @@ struct LibraryView: View {
                 // 1. Continue Reading section (only shows if books have progress)
                 ContinueReadingSection(books: continueReadingBooks)
 
-                // MARK: - Shelf Sections
-                // Shelf sections will be added in Plan 02
+                // 2. Shelf sections (collapsible DisclosureGroups)
+                ForEach(shelves) { shelf in
+                    ShelfSectionView(
+                        shelf: shelf,
+                        isExpanded: Binding(
+                            get: { shelfExpanded[shelf.id] ?? true },
+                            set: { shelfExpanded[shelf.id] = $0 }
+                        ),
+                        shelves: shelves,
+                        onRenameShelf: { shelf in
+                            shelfToRename = shelf
+                            renameShelfName = shelf.name
+                            showRenameShelfAlert = true
+                        },
+                        onDeleteShelf: { shelf in
+                            LibraryService.deleteShelf(shelf, modelContext: modelContext)
+                        },
+                        onDeleteBook: { book in
+                            bookToDelete = book
+                            showDeleteConfirmation = true
+                        },
+                        onAddBookToShelf: { book, targetShelf in
+                            LibraryService.addBookToShelf(book, targetShelf)
+                        },
+                        onRemoveBookFromShelf: { book, targetShelf in
+                            LibraryService.removeBookFromShelf(book, targetShelf)
+                        }
+                    )
+                }
 
-                // 2. All Books section
+                // 3. All Books section
                 allBooksSection
             }
             .padding(.top, 8)
@@ -156,7 +257,18 @@ struct LibraryView: View {
                     NavigationLink(value: book) {
                         BookCoverView(
                             book: book,
-                            isImporting: importService.isImporting && book.id == books.first?.id && importService.importSuccess == false
+                            isImporting: importService.isImporting && book.id == books.first?.id && importService.importSuccess == false,
+                            shelves: shelves,
+                            onDelete: {
+                                bookToDelete = book
+                                showDeleteConfirmation = true
+                            },
+                            onAddToShelf: { shelf in
+                                LibraryService.addBookToShelf(book, shelf)
+                            },
+                            onRemoveFromShelf: { shelf in
+                                LibraryService.removeBookFromShelf(book, shelf)
+                            }
                         )
                         .scaleEffect(recentlyImportedBookID == book.id ? 1.05 : 1.0)
                         .animation(.spring(duration: 0.4), value: recentlyImportedBookID)

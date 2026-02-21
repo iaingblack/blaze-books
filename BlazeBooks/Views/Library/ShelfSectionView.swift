@@ -15,7 +15,7 @@ struct ShelfSectionView: View {
     var onRenameShelf: ((Shelf) -> Void)?
     var onDeleteShelf: ((Shelf) -> Void)?
 
-    // Book management callbacks (wired in Task 2 with context menus)
+    // Book management callbacks
     var onDeleteBook: ((Book) -> Void)?
     var onAddBookToShelf: ((Book, Shelf) -> Void)?
     var onRemoveBookFromShelf: ((Book, Shelf) -> Void)?
@@ -69,7 +69,13 @@ struct ShelfSectionView: View {
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(books) { book in
                         NavigationLink(value: book) {
-                            BookCoverView(book: book)
+                            BookCoverView(
+                                book: book,
+                                shelves: shelves,
+                                onDelete: { onDeleteBook?(book) },
+                                onAddToShelf: { targetShelf in onAddBookToShelf?(book, targetShelf) },
+                                onRemoveFromShelf: { targetShelf in onRemoveBookFromShelf?(book, targetShelf) }
+                            )
                         }
                         .buttonStyle(.plain)
                     }
