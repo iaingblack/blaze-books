@@ -118,6 +118,10 @@ struct ReadingView: View {
         .onAppear {
             loadInitialPosition()
             sliderWPM = Double(coordinator.currentWPM)
+            // Apply persisted voice so TTS uses the user's chosen voice from the start
+            if let voice = voiceManager.selectedVoice {
+                coordinator.setVoice(identifier: voice.identifier)
+            }
         }
         .onDisappear {
             // Stop playback when leaving the reading view
