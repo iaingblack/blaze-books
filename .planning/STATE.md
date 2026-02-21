@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Synchronized reading and listening -- the voice tracks the displayed word perfectly, whether in RSVP or page mode
-**Current focus:** Phase 5: Library Management
+**Current focus:** Phase 6: Book Discovery
 
 ## Current Position
 
-Phase: 5 of 7 (Library Management) -- COMPLETE
-Plan: 2 of 2 in current phase (all plans complete)
-Status: Phase 5 Complete
-Last activity: 2026-02-21 -- Completed 05-02-PLAN.md (Shelf management, context menus, book deletion)
+Phase: 6 of 7 (Book Discovery)
+Plan: 1 of 2 in current phase
+Status: Executing Phase 6
+Last activity: 2026-02-21 -- Completed 06-01-PLAN.md (Data foundation: SchemaV3, Gutendex models, API service)
 
-Progress: [██████████████░░░░░░] 72%
+Progress: [███████████████░░░░░] 76%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: ~5 min
-- Total execution time: ~1.2 hours
+- Total execution time: ~1.25 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [██████████████░░░░░░] 72%
 | 3. Reading Experience | 2/2 | 12 min | 6 min |
 | 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
 | 5. Library | 2/2 | 8 min | 4 min |
+| 6. Book Discovery | 1/2 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 8m, 5m, 3m, 3m, 5m
+- Last 5 plans: 5m, 3m, 3m, 5m, 3m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
@@ -100,6 +101,9 @@ Recent decisions affecting current work:
 - [05-02]: ViewModifier pattern (BookContextMenuModifier) for conditional context menu based on onDelete presence
 - [05-02]: Callback closures from ShelfSectionView to LibraryView for all management actions
 - [05-02]: Shelf expansion state keyed by UUID dictionary to survive SwiftUI re-renders (Pitfall 4)
+- [06-01]: gutenbergId: Int? on Book model for precise In Library detection (vs title-matching)
+- [06-01]: 5-minute in-memory cache TTL to stay within Gutendex rate limits
+- [06-01]: 14 genres with topic-based Gutendex API queries (Fiction, Sci-Fi, Mystery, Adventure, Romance, Horror, Philosophy, Poetry, History, Biography, Science, Children's, Short Stories, Drama)
 
 ### Pending Todos
 
@@ -114,5 +118,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 05-02-PLAN.md (Shelf management, context menus, book deletion) -- Phase 5 Complete
-Resume file: .planning/phases/05-library/05-02-SUMMARY.md
+Stopped at: Completed 06-01-PLAN.md (Data foundation: SchemaV3, Gutendex models, API service)
+Resume file: .planning/phases/06-book-discovery/06-01-SUMMARY.md
