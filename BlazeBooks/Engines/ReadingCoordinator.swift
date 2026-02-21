@@ -303,6 +303,11 @@ final class ReadingCoordinator {
         isTTSEnabled = enabled
         applySpeedCap()
 
+        // Apply TTS rate so the next speak() uses the correct speed
+        if enabled, let voiceId = ttsService.currentVoiceIdentifier {
+            ttsService.setRate(speedCapService.wpmToRate(effectiveWPM, forVoice: voiceId))
+        }
+
         if isPlaying {
             if enabled {
                 // Switch from Timer to TTS
