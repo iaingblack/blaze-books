@@ -1,9 +1,9 @@
 ---
-status: resolved
+status: diagnosed
 phase: 06-book-discovery
 source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md
-started: 2026-02-21T08:25:00Z
-updated: 2026-02-21T08:50:00Z
+started: 2026-02-21T08:51:00Z
+updated: 2026-02-21T09:05:00Z
 ---
 
 ## Current Test
@@ -21,45 +21,45 @@ expected: The Discovery screen shows ~14 genre cards (Fiction, Science Fiction, 
 result: pass
 
 ### 3. Browse Books in a Genre
-expected: Tapping a genre card opens a book grid for that genre. Books appear as cover images in a grid layout. Scrolling down loads more books (infinite scroll).
+expected: Tapping a genre card opens a book grid for that genre. Books appear as cover images in a grid layout. Scrolling down loads more books (infinite scroll). No blank page — the view should load books after a brief loading spinner.
 result: issue
-reported: "It said refreshing genres again and then I think it timed out. Just a blank page"
+reported: "It takes far too long, fail. We need to cache something or pre-feed genres. Still does not load books, stuck on loading genres and then times out and goes back to the genre screen. Something seems wrong with the api call."
 severity: blocker
 
 ### 4. Book Detail Sheet
 expected: Tapping a book cover in the genre grid opens a sheet showing the book's cover image, title, author, and a Download button. An info button reveals additional details (subjects/bookshelves).
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ### 5. Download a Book
 expected: Tapping the Download button starts the download. The button transforms into a progress indicator during download, then shows "In Library" when complete.
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ### 6. Downloaded Book Appears in Library
 expected: After downloading a book from Discovery, navigating back to the Library view shows the book in the All Books grid, ready to read with chapters and reading position initialized.
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ### 7. In Library Badge
 expected: Books already in your library show an "In Library" badge instead of the Download button when browsing the genre grid or viewing the detail sheet.
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ### 8. Download Failure and Retry
 expected: If a download fails (e.g., airplane mode), the download button shows an error state with a Retry option. Tapping Retry attempts the download again.
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ### 9. English-Only Books
 expected: All books shown in the genre grids are in English. No foreign-language books appear in the results.
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ### 10. Popularity Sort Order
 expected: Books within a genre are ordered by popularity (most downloaded first on Gutenberg). The most well-known titles for each genre appear near the top.
 result: skipped
-reason: Blocked by Test 3 issue
+reason: Blocked by Test 3 - books never load in genre view
 
 ## Summary
 
@@ -67,23 +67,24 @@ total: 10
 passed: 2
 issues: 1
 pending: 0
-skipped: 8
+skipped: 7
 
 ## Gaps
 
-- truth: "User can tap a genre card to see books within that genre in a grid layout with infinite scroll"
-  status: resolved
-  reason: "User reported: It said refreshing genres again and then I think it timed out. Just a blank page"
+- truth: "User can tap a genre card and see books load quickly in a grid layout with infinite scroll"
+  status: failed
+  reason: "User reported: It takes far too long, fail. We need to cache something or pre-feed genres. Still does not load books, stuck on loading genres and then times out and goes back to the genre screen. Something seems wrong with the api call."
   severity: blocker
   test: 3
-  root_cause: "GutendexService.fetchBooks catch block swallows CancellationError (from SwiftUI .task cancellation during navigation transition), returns nil. GenreBooksView.loadInitialBooks sets isInitialLoad=false unconditionally even when fetch fails, showing blank 'No books found' state instead of retry option."
+  root_cause: "Three compounding issues: (1) DiscoveryView.loadGenreCovers() fires API requests for all 14 genres in batches of 4 before showing any UI — each request takes 46-92s, creating a 4-6 minute loading wall. (2) GutendexService baseURL missing trailing slash causes 301 redirect round-trip on every request. (3) mime_type=application/epub query filter nearly doubles API response time (46s→92s) and most Gutenberg books have EPUB anyway."
   artifacts:
+    - path: "BlazeBooks/Views/Discovery/DiscoveryView.swift"
+      issue: "loadGenreCovers() fires 14 API calls before showing any genre cards — user sees Loading for minutes"
     - path: "BlazeBooks/Services/GutendexService.swift"
-      issue: "catch block swallows CancellationError and all errors, returns nil silently"
-    - path: "BlazeBooks/Views/Discovery/GenreBooksView.swift"
-      issue: "isInitialLoad set to false unconditionally; no loadFailed state to distinguish failure from empty"
+      issue: "Missing trailing slash on baseURL (line 10); mime_type=application/epub filter doubles response time (lines 31-36)"
   missing:
-    - "GutendexService.fetchBooks must not set self.error on CancellationError; should return nil without side effects"
-    - "GenreBooksView needs loadFailed state to distinguish network failure from genuinely empty genre"
-    - "GenreBooksView should only set isInitialLoad=false after successful response, and show retry UI on failure"
-  debug_session: ""
+    - "Show genre cards immediately with static content, no preloading of cover images from API"
+    - "Add trailing slash to baseURL: https://gutendex.com/books/"
+    - "Remove mime_type=application/epub filter — filter for EPUB availability client-side instead"
+    - "Consider adding URLSession timeout configuration (e.g. 30s) for clear failure instead of indefinite wait"
+  debug_session: ".planning/debug/genre-books-never-load.md"
