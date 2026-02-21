@@ -1,9 +1,9 @@
 ---
-status: complete
+status: fix-applied
 phase: 06-book-discovery
-source: 06-01-SUMMARY.md, 06-02-SUMMARY.md
+source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md
 started: 2026-02-21T08:25:00Z
-updated: 2026-02-21T08:35:00Z
+updated: 2026-02-21T08:43:00Z
 ---
 
 ## Current Test
@@ -76,7 +76,14 @@ skipped: 8
   reason: "User reported: It said refreshing genres again and then I think it timed out. Just a blank page"
   severity: blocker
   test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "GutendexService.fetchBooks catch block swallows CancellationError (from SwiftUI .task cancellation during navigation transition), returns nil. GenreBooksView.loadInitialBooks sets isInitialLoad=false unconditionally even when fetch fails, showing blank 'No books found' state instead of retry option."
+  artifacts:
+    - path: "BlazeBooks/Services/GutendexService.swift"
+      issue: "catch block swallows CancellationError and all errors, returns nil silently"
+    - path: "BlazeBooks/Views/Discovery/GenreBooksView.swift"
+      issue: "isInitialLoad set to false unconditionally; no loadFailed state to distinguish failure from empty"
+  missing:
+    - "GutendexService.fetchBooks must not set self.error on CancellationError; should return nil without side effects"
+    - "GenreBooksView needs loadFailed state to distinguish network failure from genuinely empty genre"
+    - "GenreBooksView should only set isInitialLoad=false after successful response, and show retry UI on failure"
   debug_session: ""
