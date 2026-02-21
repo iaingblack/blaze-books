@@ -42,6 +42,11 @@ final class ReadingCoordinator {
     var isSpeedCapped: Bool = false
     /// Inline banner message when speed is capped, e.g. "Voice capped at 320 WPM".
     var speedCapMessage: String = ""
+    /// Whether punctuation pauses (sentence-end, comma, etc.) are applied.
+    /// Persisted to UserDefaults so the preference survives app restarts.
+    var punctuationPausesEnabled: Bool = true {
+        didSet { UserDefaults.standard.set(punctuationPausesEnabled, forKey: "punctuationPausesEnabled") }
+    }
     /// Current word index in the chapter's word array.
     var currentWordIndex: Int = 0
     /// Total number of words in the current chapter.
@@ -95,6 +100,14 @@ final class ReadingCoordinator {
         self.speedCapService = speedCapService
         self.rsvpEngine = RSVPEngine()
         self.ttsService = TTSService()
+
+        // Restore persisted punctuation pause preference
+        if UserDefaults.standard.object(forKey: "punctuationPausesEnabled") != nil {
+            let saved = UserDefaults.standard.bool(forKey: "punctuationPausesEnabled")
+            self.punctuationPausesEnabled = saved
+            rsvpEngine.setPunctuationPauses(saved)
+            ttsService.setPunctuationPauses(saved)
+        }
 
         // Wire chapter-complete callbacks
         rsvpEngine.onChapterComplete = { [weak self] in
@@ -288,6 +301,35 @@ final class ReadingCoordinator {
                 rsvpEngine.seekTo(index: currentWordIndex)
                 rsvpEngine.play()
                 startRSVPObservation()
+            }
+        }
+    }
+
+    /// Toggles punctuation pauses on/off for both engines.
+    ///
+    /// When disabled, RSVP timer uses uniform word timing and TTS sends the chapter
+    /// as a single utterance to minimize inter-sentence gaps.
+    /// If TTS is currently playing, restarts speech with the new setting.
+    ///
+    /// - Parameter enabled: Whether punctuation pauses should be active.
+    func setPunctuationPauses(_ enabled: Bool) {
+        punctuationPausesEnabled = enabled
+        rsvpEngine.setPunctuationPauses(enabled)
+        ttsService.setPunctuationPauses(enabled)
+
+        // Re-prepare TTS chapter with new chunking strategy
+        if currentChapterIndex < chapterTexts.count {
+            let resumeIndex = currentWordIndex
+            let wasPlaying = isPlaying
+
+            if isTTSEnabled && wasPlaying {
+                ttsService.stop()
+            }
+
+            ttsService.prepareChapter(chapterTexts[currentChapterIndex])
+
+            if isTTSEnabled && wasPlaying {
+                ttsService.speak(fromWordIndex: resumeIndex)
             }
         }
     }

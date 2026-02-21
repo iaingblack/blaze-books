@@ -334,26 +334,39 @@ struct ReadingView: View {
     /// Used in both RSVP and page modes.
     private var readingControlsBar: some View {
         HStack(spacing: 20) {
-            // TTS toggle
-            Button {
-                coordinator.setTTSEnabled(!coordinator.isTTSEnabled)
-            } label: {
-                Image(systemName: coordinator.isTTSEnabled ? "speaker.wave.2.fill" : "speaker.slash")
-                    .font(.title3)
-                    .foregroundStyle(coordinator.isTTSEnabled ? Color.accentColor : .secondary)
-                    .frame(width: 44, height: 44)
-            }
+            // Voice controls group (tighter spacing)
+            HStack(spacing: 8) {
+                // TTS toggle
+                Button {
+                    coordinator.setTTSEnabled(!coordinator.isTTSEnabled)
+                } label: {
+                    Image(systemName: coordinator.isTTSEnabled ? "speaker.wave.2.fill" : "speaker.slash")
+                        .font(.title3)
+                        .foregroundStyle(coordinator.isTTSEnabled ? Color.accentColor : .secondary)
+                        .frame(width: 44, height: 44)
+                }
 
-            // Voice picker button (only enabled when TTS is on)
-            Button {
-                showVoicePicker = true
-            } label: {
-                Image(systemName: "person.wave.2")
-                    .font(.title3)
-                    .foregroundStyle(coordinator.isTTSEnabled ? Color.primary : Color.secondary.opacity(0.5))
-                    .frame(width: 44, height: 44)
+                // Voice picker button (only enabled when TTS is on)
+                Button {
+                    showVoicePicker = true
+                } label: {
+                    Image(systemName: "person.wave.2")
+                        .font(.title3)
+                        .foregroundStyle(coordinator.isTTSEnabled ? Color.primary : Color.secondary.opacity(0.5))
+                        .frame(width: 44, height: 44)
+                }
+                .disabled(!coordinator.isTTSEnabled)
+
+                // Punctuation pauses toggle
+                Button {
+                    coordinator.setPunctuationPauses(!coordinator.punctuationPausesEnabled)
+                } label: {
+                    Image(systemName: coordinator.punctuationPausesEnabled ? "ellipsis.circle.fill" : "ellipsis.circle")
+                        .font(.title3)
+                        .foregroundStyle(coordinator.punctuationPausesEnabled ? Color.accentColor : .secondary)
+                        .frame(width: 44, height: 44)
+                }
             }
-            .disabled(!coordinator.isTTSEnabled)
 
             Spacer()
 
@@ -447,7 +460,7 @@ struct ReadingView: View {
             }
             .disabled(currentChapterIndex >= totalChapters - 1)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 28)
         .padding(.vertical, 10)
         .background(.bar)
     }

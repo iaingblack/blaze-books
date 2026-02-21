@@ -42,6 +42,8 @@ final class TTSService {
     var currentVoiceIdentifier: String? { selectedVoiceIdentifier }
     @ObservationIgnored
     private var speechRate: Float = AVSpeechUtteranceDefaultSpeechRate
+    @ObservationIgnored
+    private var punctuationPausesEnabled: Bool = true
 
     /// Called with the global word index each time the synthesizer reaches a new word.
     /// The ReadingCoordinator uses this to update RSVP display in TTS-on mode.
@@ -66,8 +68,26 @@ final class TTSService {
     /// Word counts per sentence use `NLTokenizer(unit: .word)` to match the tokenization used
     /// throughout the app (not `String.split` which handles edge cases differently).
     ///
+    /// When `punctuationPausesEnabled` is false, the entire chapter is treated as a single
+    /// "sentence" to eliminate inter-sentence pauses from the synthesizer.
+    ///
     /// - Parameter text: The full plain text of a chapter.
     func prepareChapter(_ text: String) {
+        if !punctuationPausesEnabled {
+            // Single utterance mode: treat entire chapter as one entry
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else {
+                sentenceQueue = []
+                currentSentenceIndex = 0
+                currentGlobalWordIndex = 0
+                return
+            }
+            sentenceQueue = [(text: trimmed, wordOffset: 0)]
+            currentSentenceIndex = 0
+            currentGlobalWordIndex = 0
+            return
+        }
+
         // Sentence tokenization
         let sentenceTokenizer = NLTokenizer(unit: .sentence)
         sentenceTokenizer.string = text
@@ -173,6 +193,16 @@ final class TTSService {
     /// - Parameter rate: A value from 0.0 (slowest) to 1.0 (fastest).
     func setRate(_ rate: Float) {
         speechRate = max(0.0, min(1.0, rate))
+    }
+
+    /// Enables or disables punctuation pauses in TTS.
+    ///
+    /// When disabled, the entire chapter is sent as a single utterance instead of
+    /// sentence-by-sentence, eliminating inter-sentence gaps. The synthesizer still
+    /// produces minimal natural pauses at punctuation, but they are much shorter.
+    /// - Parameter enabled: Whether to use sentence-level chunking with inter-sentence pauses.
+    func setPunctuationPauses(_ enabled: Bool) {
+        punctuationPausesEnabled = enabled
     }
 
     // MARK: - Private Methods
