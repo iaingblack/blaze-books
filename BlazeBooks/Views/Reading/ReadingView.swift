@@ -96,8 +96,14 @@ struct ReadingView: View {
             progressBar
 
             if isLoading {
-                ProgressView("Loading chapter...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .controlSize(.large)
+                    Text("Opening book\u{2026}")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if coordinator.readingMode == .rsvp {
                 rsvpModeContent
             } else {
@@ -124,7 +130,9 @@ struct ReadingView: View {
                 fontSizeControls
             }
         }
-        .onAppear {
+        .task {
+            // Yield to allow the loading spinner to render before heavy work
+            await Task.yield()
             loadInitialPosition()
             sliderWPM = Double(coordinator.currentWPM)
             // Apply persisted voice so TTS uses the user's chosen voice from the start
