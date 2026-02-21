@@ -16,10 +16,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Library
 
-- [ ] **LIB-01**: User can view library with book covers and titles
+- [x] **LIB-01**: User can view library with book covers and titles
 - [ ] **LIB-02**: User can organize books into custom shelves
 - [ ] **LIB-03**: User can remove books from library
-- [ ] **LIB-04**: User sees "continue reading" section with recently read books
+- [x] **LIB-04**: User sees "continue reading" section with recently read books
 - [x] **LIB-05**: App auto-saves reading position per book
 
 ### Reading Modes
@@ -123,10 +123,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-03 | Phase 4: Navigation & Appearance | Complete |
 | APP-01 | Phase 4: Navigation & Appearance | Complete |
 | APP-02 | Phase 4: Navigation & Appearance | Complete |
-| LIB-01 | Phase 5: Library | Pending |
+| LIB-01 | Phase 5: Library | Complete |
 | LIB-02 | Phase 5: Library | Pending |
 | LIB-03 | Phase 5: Library | Pending |
-| LIB-04 | Phase 5: Library | Pending |
+| LIB-04 | Phase 5: Library | Complete |
 | DISC-01 | Phase 6: Book Discovery | Pending |
 | DISC-02 | Phase 6: Book Discovery | Pending |
 | SYNC-01 | Phase 7: iCloud Sync | Pending |

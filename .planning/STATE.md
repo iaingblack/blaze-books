@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 5 of 7 (Library Management)
-Plan: 0 of ? in current phase
-Status: Phase 4 complete, ready for Phase 5
-Last activity: 2026-02-20 -- Completed 04-02-PLAN.md (Appearance & font size controls, dark mode documentation)
+Plan: 1 of 2 in current phase
+Status: Executing Phase 5
+Last activity: 2026-02-21 -- Completed 05-01-PLAN.md (SchemaV2 with Shelf model, sectioned LibraryView)
 
 Progress: [█████████████░░░░░░░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: ~6 min
-- Total execution time: ~1.0 hours
+- Total plans completed: 11
+- Average duration: ~5 min
+- Total execution time: ~1.1 hours
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [█████████████░░░░░░░] 65%
 | 2. Reading Engine | 3 | multi-session | varies |
 | 3. Reading Experience | 2/2 | 12 min | 6 min |
 | 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
+| 5. Library | 1/2 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: multi-session, 4m, 8m, 5m, 3m
+- Last 5 plans: 4m, 8m, 5m, 3m, 3m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
@@ -92,6 +93,9 @@ Recent decisions affecting current work:
 - [04-02]: Line spacing uses 41% ratio (readingFontSize * 0.41) preserving original 7/17 design proportion
 - [04-02]: RSVP dark theme is intentional design, not a dark mode bug -- documented in RSVPDisplayView
 - [04-02]: Idle state dash uses .white.opacity(0.3) instead of .secondary for consistent contrast on dark RSVP background
+- [Phase 05]: .nullify delete rules on both sides of Book-Shelf many-to-many to prevent cascade deletion of books
+- [Phase 05]: Post-fetch sorting via computed properties instead of dynamic @Query sort descriptors
+- [Phase 05]: Progress computed at display time from chapterIndex/wordIndex/chapter.wordCount (not stored in model)
 
 ### Pending Todos
 
@@ -106,5 +110,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 5 context gathered -- library layout, shelves, deletion, continue reading decisions captured
-Resume file: .planning/phases/05-library/05-CONTEXT.md
+Stopped at: Completed 05-01-PLAN.md (SchemaV2 + sectioned LibraryView)
+Resume file: .planning/phases/05-library/05-01-SUMMARY.md
