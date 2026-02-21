@@ -1,3 +1,3 @@
 import Foundation
 
-typealias Shelf = SchemaV3.Shelf
+typealias Shelf = SchemaV4.Shelf

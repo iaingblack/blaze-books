@@ -1,3 +1,3 @@
 import Foundation
 
-typealias Book = SchemaV3.Book
+typealias Book = SchemaV4.Book

@@ -1,3 +1,3 @@
 import Foundation
 
-typealias Chapter = SchemaV3.Chapter
+typealias Chapter = SchemaV4.Chapter
