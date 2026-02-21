@@ -42,6 +42,9 @@ final class GutendexService {
             let response = try JSONDecoder().decode(GutendexResponse.self, from: data)
             cache[cacheKey] = CachedResponse(response: response, timestamp: Date())
             return response
+        } catch is CancellationError {
+            // SwiftUI .task cancelled during navigation transition -- not a real error
+            return nil
         } catch {
             self.error = "Could not load books. Check your connection."
             return nil
@@ -65,6 +68,9 @@ final class GutendexService {
             let response = try JSONDecoder().decode(GutendexResponse.self, from: data)
             cache[nextURL] = CachedResponse(response: response, timestamp: Date())
             return response
+        } catch is CancellationError {
+            // SwiftUI .task cancelled during navigation transition -- not a real error
+            return nil
         } catch {
             self.error = "Could not load books. Check your connection."
             return nil
