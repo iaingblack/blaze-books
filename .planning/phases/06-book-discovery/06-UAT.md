@@ -1,9 +1,9 @@
 ---
-status: resolved
+status: testing
 phase: 06-book-discovery
-source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md
-started: 2026-02-21T08:51:00Z
-updated: 2026-02-21T09:19:00Z
+source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md, 06-04-SUMMARY.md
+started: 2026-02-21T09:25:00Z
+updated: 2026-02-21T09:30:00Z
 ---
 
 ## Current Test
@@ -16,14 +16,14 @@ updated: 2026-02-21T09:19:00Z
 expected: In the Library view, there is a globe icon button in the toolbar. Tapping it navigates to a Discovery screen showing a grid of genre cards.
 result: pass
 
-### 2. Genre Grid with Cover Collages
-expected: The Discovery screen shows ~14 genre cards (Fiction, Science Fiction, Mystery, Adventure, etc.). Each card displays a small collage of book cover images from that genre with the genre name overlaid on a gradient.
+### 2. Genre Grid Display
+expected: The Discovery screen shows ~14 genre cards (Fiction, Science Fiction, Mystery, Adventure, etc.). Each card displays the genre name on a gradient background with an SF Symbol icon. Cards appear instantly with no loading spinner.
 result: pass
 
 ### 3. Browse Books in a Genre
-expected: Tapping a genre card opens a book grid for that genre. Books appear as cover images in a grid layout. Scrolling down loads more books (infinite scroll). No blank page — the view should load books after a brief loading spinner.
+expected: Tapping a genre card opens a book grid for that genre. Books appear as cover images in a grid layout within a few seconds (not minutes). Scrolling down loads more books (infinite scroll). Genre cards on the Discovery screen appear instantly with gradient backgrounds — no loading spinner.
 result: issue
-reported: "It takes far too long, fail. We need to cache something or pre-feed genres. Still does not load books, stuck on loading genres and then times out and goes back to the genre screen. Something seems wrong with the api call."
+reported: "It just keeps showing the genres icons. Books never load when tapping a genre card."
 severity: blocker
 
 ### 4. Book Detail Sheet
@@ -72,19 +72,9 @@ skipped: 7
 ## Gaps
 
 - truth: "User can tap a genre card and see books load quickly in a grid layout with infinite scroll"
-  status: resolved
-  reason: "User reported: It takes far too long, fail. We need to cache something or pre-feed genres. Still does not load books, stuck on loading genres and then times out and goes back to the genre screen. Something seems wrong with the api call."
+  status: failed
+  reason: "User reported: It just keeps showing the genres icons. Books never load when tapping a genre card."
   severity: blocker
   test: 3
-  root_cause: "Three compounding issues: (1) DiscoveryView.loadGenreCovers() fires API requests for all 14 genres in batches of 4 before showing any UI — each request takes 46-92s, creating a 4-6 minute loading wall. (2) GutendexService baseURL missing trailing slash causes 301 redirect round-trip on every request. (3) mime_type=application/epub query filter nearly doubles API response time (46s→92s) and most Gutenberg books have EPUB anyway."
-  artifacts:
-    - path: "BlazeBooks/Views/Discovery/DiscoveryView.swift"
-      issue: "loadGenreCovers() fires 14 API calls before showing any genre cards — user sees Loading for minutes"
-    - path: "BlazeBooks/Services/GutendexService.swift"
-      issue: "Missing trailing slash on baseURL (line 10); mime_type=application/epub filter doubles response time (lines 31-36)"
-  missing:
-    - "Show genre cards immediately with static content, no preloading of cover images from API"
-    - "Add trailing slash to baseURL: https://gutendex.com/books/"
-    - "Remove mime_type=application/epub filter — filter for EPUB availability client-side instead"
-    - "Consider adding URLSession timeout configuration (e.g. 30s) for clear failure instead of indefinite wait"
-  debug_session: ".planning/debug/genre-books-never-load.md"
+  artifacts: []
+  missing: []

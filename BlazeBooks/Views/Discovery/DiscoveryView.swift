@@ -14,7 +14,9 @@ struct DiscoveryView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(Genre.all) { genre in
-                    NavigationLink(value: genre) {
+                    NavigationLink {
+                        GenreBooksView(genre: genre)
+                    } label: {
                         GenreCardView(genre: genre, coverURLs: [])
                     }
                     .buttonStyle(.plain)

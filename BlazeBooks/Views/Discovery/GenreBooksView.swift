@@ -16,8 +16,6 @@ struct GenreBooksView: View {
     @Query private var libraryBooks: [Book]
 
     @State private var books: [GutendexBook] = []
-    @State private var nextPageURL: String? = nil
-    @State private var isLoadingMore = false
     @State private var isInitialLoad = true
     @State private var loadFailed = false
     @State private var selectedBook: GutendexBook? = nil
@@ -79,20 +77,11 @@ struct GenreBooksView: View {
                             bookCard(for: book)
                         }
                         .buttonStyle(.plain)
-                        .onAppear {
-                            if book.id == books.last?.id {
-                                Task { await loadNextPage() }
-                            }
-                        }
                     }
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
 
-                if isLoadingMore {
-                    ProgressView()
-                        .padding()
-                }
             }
         }
         .navigationTitle(genre.name)
@@ -215,10 +204,9 @@ struct GenreBooksView: View {
         guard books.isEmpty else { return }
         loadFailed = false
 
-        let response = await gutendexService.fetchBooks(topic: genre.topic, page: 1)
+        let response = await gutendexService.fetchBooksByIds(genre.bookIds)
         if let response = response {
             books = response.results.filter { $0.epubURL != nil }
-            nextPageURL = response.next
             isInitialLoad = false
         } else if !Task.isCancelled {
             // Only treat as failure if the task was not cancelled
@@ -228,18 +216,6 @@ struct GenreBooksView: View {
         }
         // If Task.isCancelled, leave isInitialLoad = true so the
         // next .task invocation retries automatically
-    }
-
-    private func loadNextPage() async {
-        guard let nextURL = nextPageURL, !isLoadingMore else { return }
-
-        isLoadingMore = true
-        let response = await gutendexService.fetchNextPage(from: nextURL)
-        if let response = response {
-            books.append(contentsOf: response.results.filter { $0.epubURL != nil })
-            nextPageURL = response.next
-        }
-        isLoadingMore = false
     }
 
     // MARK: - In Library Detection
