@@ -1,0 +1,35 @@
+{
+  "identifier" : "3A2B1C4D-5E6F-7A8B-9C0D-1E2F3A4B5C6D",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+      "localizations" : [
+        {
+          "description" : "Show your support for Blaze Books with a gold star.",
+          "displayName" : "Show Support",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "com.blazebooks.support",
+      "referenceName" : "Show Support",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "1234567890",
+    "_developerTeamID" : "XXXXXXXXXX",
+    "_lastSynchronizedDate" : "2026-02-21T00:00:00Z"
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
