@@ -45,7 +45,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Book Discovery
 
 - [x] **DISC-01**: User can browse curated Project Gutenberg collections by genre
-- [ ] **DISC-02**: User can download free books from Gutenberg directly in-app
+- [x] **DISC-02**: User can download free books from Gutenberg directly in-app
 
 ### Appearance
 
@@ -128,7 +128,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIB-03 | Phase 5: Library | Complete |
 | LIB-04 | Phase 5: Library | Complete |
 | DISC-01 | Phase 6: Book Discovery | Complete |
-| DISC-02 | Phase 6: Book Discovery | Pending |
+| DISC-02 | Phase 6: Book Discovery | Complete |
 | SYNC-01 | Phase 7: iCloud Sync | Pending |
 | SYNC-02 | Phase 7: iCloud Sync | Pending |
 | SYNC-03 | Phase 7: iCloud Sync | Pending |

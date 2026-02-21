@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 6 of 7 (Book Discovery)
-Plan: 1 of 2 in current phase
-Status: Executing Phase 6
-Last activity: 2026-02-21 -- Completed 06-01-PLAN.md (Data foundation: SchemaV3, Gutendex models, API service)
+Phase: 6 of 7 (Book Discovery) -- COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase 6 Complete
+Last activity: 2026-02-21 -- Completed 06-02-PLAN.md (Discovery UI & download pipeline)
 
-Progress: [███████████████░░░░░] 76%
+Progress: [████████████████░░░░] 82%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: ~5 min
 - Total execution time: ~1.25 hours
 
@@ -32,13 +32,14 @@ Progress: [███████████████░░░░░] 76%
 | 3. Reading Experience | 2/2 | 12 min | 6 min |
 | 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
 | 5. Library | 2/2 | 8 min | 4 min |
-| 6. Book Discovery | 1/2 | 3 min | 3 min |
+| 6. Book Discovery | 2/2 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 5m, 3m, 3m, 5m, 3m
+- Last 5 plans: 3m, 3m, 5m, 3m, 5m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
+| Phase 06 P02 | 5min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,11 @@ Recent decisions affecting current work:
 - [06-01]: gutenbergId: Int? on Book model for precise In Library detection (vs title-matching)
 - [06-01]: 5-minute in-memory cache TTL to stay within Gutendex rate limits
 - [06-01]: 14 genres with topic-based Gutendex API queries (Fiction, Sci-Fi, Mystery, Adventure, Romance, Horror, Philosophy, Poetry, History, Biography, Science, Children's, Short Stories, Drama)
+- [06-02]: EPUBImportService refactored with importLocalEPUB shared method for both file-picker and download flows
+- [06-02]: ImportError enum (alreadyInLibrary, parseFailed) for structured error handling across import paths
+- [06-02]: BookDownloadService treats alreadyInLibrary as .completed (not error) for UX consistency
+- [06-02]: Genre cover collages fetched in batches of 4 via TaskGroup to respect Gutendex rate limits
+- [06-02]: Globe toolbar button in LibraryView for Discovery navigation
 
 ### Pending Todos
 
@@ -118,5 +124,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 06-01-PLAN.md (Data foundation: SchemaV3, Gutendex models, API service)
-Resume file: .planning/phases/06-book-discovery/06-01-SUMMARY.md
+Stopped at: Completed 06-02-PLAN.md (Discovery UI & download pipeline -- Phase 6 complete)
+Resume file: .planning/phases/06-book-discovery/06-02-SUMMARY.md

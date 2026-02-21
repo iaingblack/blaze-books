@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
 - [ ] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
 - [ ] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
-- [ ] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
+- [x] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
 - [ ] **Phase 7: iCloud Sync** - Cross-device sync of library, reading positions, and shelves
 
 ## Phase Details
@@ -111,8 +111,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — SchemaV3 with gutenbergId, Gutendex API models, GutendexService API client
-- [ ] 06-02-PLAN.md — BookDownloadService, EPUBImportService refactoring, Discovery UI views, LibraryView integration
+- [x] 06-01-PLAN.md — SchemaV3 with gutenbergId, Gutendex API models, GutendexService API client
+- [x] 06-02-PLAN.md — BookDownloadService, EPUBImportService refactoring, Discovery UI views, LibraryView integration
 
 ### Phase 7: iCloud Sync
 **Goal**: Users can read on one device and continue seamlessly on another
