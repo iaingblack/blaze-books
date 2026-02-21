@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 6 of 7 (Book Discovery) -- Gap closure complete
-Plan: 3 of 3 in current phase
-Status: Phase 6 Complete (including gap closure)
-Last activity: 2026-02-21 -- Completed 06-03-PLAN.md (Genre browsing blank page fix)
+Plan: 4 of 4 in current phase
+Status: Phase 6 Complete (including gap closure + performance fix)
+Last activity: 2026-02-21 -- Completed 06-04-PLAN.md (Genre browsing performance)
 
-Progress: [████████████████░░░░] 82%
+Progress: [████████████████░░░░] 84%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: ~5 min
 - Total execution time: ~1.25 hours
 
@@ -32,15 +32,16 @@ Progress: [████████████████░░░░] 82%
 | 3. Reading Experience | 2/2 | 12 min | 6 min |
 | 4. Navigation & Appearance | 2/2 | 8 min | 4 min |
 | 5. Library | 2/2 | 8 min | 4 min |
-| 6. Book Discovery | 3/3 | 10 min | 3 min |
+| 6. Book Discovery | 4/4 | 12 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 3m, 5m, 3m, 5m, 2m
+- Last 5 plans: 5m, 3m, 5m, 2m, 2m
 - Trend: non-checkpoint plans complete quickly
 
 *Updated after each plan completion*
 | Phase 06 P02 | 5min | 2 tasks | 9 files |
 | Phase 06 P03 | 2min | 2 tasks | 2 files |
+| Phase 06 P04 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [06-02]: Globe toolbar button in LibraryView for Discovery navigation
 - [06-03]: CancellationError returns nil without setting self.error to avoid polluting error state during navigation transitions
 - [06-03]: Task.isCancelled check leaves isInitialLoad=true so SwiftUI .task re-invocation auto-retries
+- [06-04]: Removed all API preloading from DiscoveryView -- genre cards render instantly with fallback gradients (no network dependency)
+- [06-04]: Moved EPUB filtering from server-side (mime_type param) to client-side (epubURL != nil) for ~2x API speed improvement
+- [06-04]: 30-second URLSession timeout instead of 60-second default for fail-fast behavior on slow Gutendex API
 
 ### Pending Todos
 
@@ -127,5 +131,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 06-03-PLAN.md (Genre browsing blank page fix -- Phase 6 gap closure complete)
-Resume file: .planning/phases/06-book-discovery/06-03-SUMMARY.md
+Stopped at: Completed 06-04-PLAN.md (Genre browsing performance fix -- Phase 6 gap closure fully complete)
+Resume file: .planning/phases/06-book-discovery/06-04-SUMMARY.md
