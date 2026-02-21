@@ -1,3 +1,3 @@
 import Foundation
 
-typealias ReadingPosition = SchemaV1.ReadingPosition
+typealias ReadingPosition = SchemaV2.ReadingPosition
