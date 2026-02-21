@@ -39,6 +39,23 @@ struct BookCoverView: View {
                         .tint(.white)
                         .scaleEffect(1.2)
                 }
+
+                // Cloud badge for books not yet downloaded (synced metadata without EPUB data)
+                if !book.isDownloaded {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "icloud.and.arrow.down")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white)
+                                .padding(5)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                                .padding(4)
+                        }
+                        Spacer()
+                    }
+                }
             }
             .aspectRatio(2.0 / 3.0, contentMode: .fit)
             .clipShape(RoundedRectangle(cornerRadius: 8))
