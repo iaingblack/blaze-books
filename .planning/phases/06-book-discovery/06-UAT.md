@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 06-book-discovery
 source: 06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md
 started: 2026-02-21T08:51:00Z
-updated: 2026-02-21T09:05:00Z
+updated: 2026-02-21T09:19:00Z
 ---
 
 ## Current Test
@@ -72,7 +72,7 @@ skipped: 7
 ## Gaps
 
 - truth: "User can tap a genre card and see books load quickly in a grid layout with infinite scroll"
-  status: failed
+  status: resolved
   reason: "User reported: It takes far too long, fail. We need to cache something or pre-feed genres. Still does not load books, stuck on loading genres and then times out and goes back to the genre screen. Something seems wrong with the api call."
   severity: blocker
   test: 3

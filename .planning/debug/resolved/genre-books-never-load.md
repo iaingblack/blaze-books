@@ -1,8 +1,8 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "Tapping genre card does not load books - stuck on loading, times out, goes back to genre screen"
 created: 2026-02-21T00:00:00Z
-updated: 2026-02-21T00:00:00Z
+updated: 2026-02-21T09:19:00Z
 ---
 
 ## Current Focus
