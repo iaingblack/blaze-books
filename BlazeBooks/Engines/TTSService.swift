@@ -202,9 +202,11 @@ final class TTSService {
 
     /// Stops speech and destroys the synthesizer instance.
     /// Per Pitfall 2: after stopSpeaking, the synthesizer must be recreated.
+    /// Delegate is removed before stopping to prevent async didCancel callbacks
+    /// from interfering with a subsequent speak() call.
     func stop() {
-        synthesizer?.stopSpeaking(at: .immediate)
         synthesizer?.delegate = nil
+        synthesizer?.stopSpeaking(at: .immediate)
         synthesizer = nil
         isSpeaking = false
     }
