@@ -9,10 +9,12 @@
 /* Begin PBXBuildFile section */
 		AEA5421B2F48BF9B005912B1 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = A1000100 /* ReadiumShared */; };
 		AEA5421C2F48BF9B005912B1 /* ReadiumStreamer in Frameworks */ = {isa = PBXBuildFile; productRef = A1000101 /* ReadiumStreamer */; };
+		AEC70EC82F4A2538000099A5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEC70EC72F4A2538000099A5 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A1000001 /* BlazeBooks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlazeBooks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEC70EC72F4A2538000099A5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -52,6 +54,7 @@
 		A1000030 = {
 			isa = PBXGroup;
 			children = (
+				AEC70EC72F4A2538000099A5 /* Assets.xcassets */,
 				A1000010 /* BlazeBooks */,
 				A1000040 /* Products */,
 			);
@@ -134,6 +137,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEC70EC82F4A2538000099A5 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,6 +286,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BlazeBooks/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -313,6 +318,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BlazeBooks/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
