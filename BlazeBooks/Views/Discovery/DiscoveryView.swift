@@ -24,8 +24,5 @@ struct DiscoveryView: View {
             .padding(.top, 8)
         }
         .navigationTitle("Discover Books")
-        .navigationDestination(for: Genre.self) { genre in
-            GenreBooksView(genre: genre)
-        }
     }
 }

@@ -9,6 +9,9 @@ struct ContentView: View {
                 .navigationDestination(for: Book.self) { book in
                     ReadingView(book: book)
                 }
+                .navigationDestination(for: Genre.self) { genre in
+                    GenreBooksView(genre: genre)
+                }
         }
     }
 }
