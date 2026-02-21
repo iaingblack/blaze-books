@@ -170,7 +170,7 @@ struct ReadingView: View {
             }
         }
         .pickerStyle(.segmented)
-        .frame(width: 160)
+        .frame(width: 130)
         .onChange(of: coordinator.readingMode) { oldMode, newMode in
             // switchMode preserves word index and optionally resumes TTS (READ-03)
             coordinator.switchMode(to: newMode)
@@ -189,7 +189,7 @@ struct ReadingView: View {
     /// Inline font size adjustment controls (A-/pt/A+) for page mode reading.
     /// Font size is clamped to ReadingDefaults.minFontSize...maxFontSize.
     private var fontSizeControls: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 6) {
             Button {
                 readingFontSize = max(ReadingDefaults.minFontSize, readingFontSize - ReadingDefaults.fontSizeStep)
             } label: {
@@ -210,7 +210,6 @@ struct ReadingView: View {
             }
             .disabled(readingFontSize >= ReadingDefaults.maxFontSize)
         }
-        .padding(.horizontal, 20)
         .padding(.vertical, 8)
     }
 
