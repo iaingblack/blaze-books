@@ -11,6 +11,12 @@ enum ReadingDefaults {
     static let minFontSize: Double = 12.0
     static let maxFontSize: Double = 32.0
     static let fontSizeStep: Double = 2.0
+
+    static let rsvpFontSizeKey = "rsvpFontSize"
+    static let rsvpDefaultFontSize: Double = 36.0
+    static let rsvpMinFontSize: Double = 24.0
+    static let rsvpMaxFontSize: Double = 56.0
+    static let rsvpFontSizeStep: Double = 4.0
 }
 
 /// Dual-mode reading view supporting both scroll-based Page mode and RSVP speed reading.
@@ -55,6 +61,9 @@ struct ReadingView: View {
 
     /// User-adjustable font size for page mode reading, persisted via UserDefaults.
     @AppStorage(ReadingDefaults.fontSizeKey) private var readingFontSize: Double = ReadingDefaults.defaultFontSize
+
+    /// User-adjustable font size for RSVP mode, persisted separately via UserDefaults.
+    @AppStorage(ReadingDefaults.rsvpFontSizeKey) private var rsvpFontSize: Double = ReadingDefaults.rsvpDefaultFontSize
 
     // MARK: - Table of Contents State
 
@@ -190,29 +199,43 @@ struct ReadingView: View {
 
     // MARK: - Font Size Controls
 
-    /// Inline font size adjustment controls (A-/pt/A+) for page mode reading.
-    /// Font size is clamped to ReadingDefaults.minFontSize...maxFontSize.
+    /// Inline font size adjustment controls (A-/pt/A+).
+    /// Adjusts the appropriate font size based on current reading mode.
     private var fontSizeControls: some View {
-        HStack(spacing: 6) {
+        let isRSVP = coordinator.readingMode == .rsvp
+        let currentSize = isRSVP ? rsvpFontSize : readingFontSize
+        let minSize = isRSVP ? ReadingDefaults.rsvpMinFontSize : ReadingDefaults.minFontSize
+        let maxSize = isRSVP ? ReadingDefaults.rsvpMaxFontSize : ReadingDefaults.maxFontSize
+        let step = isRSVP ? ReadingDefaults.rsvpFontSizeStep : ReadingDefaults.fontSizeStep
+
+        return HStack(spacing: 6) {
             Button {
-                readingFontSize = max(ReadingDefaults.minFontSize, readingFontSize - ReadingDefaults.fontSizeStep)
+                if isRSVP {
+                    rsvpFontSize = max(minSize, rsvpFontSize - step)
+                } else {
+                    readingFontSize = max(minSize, readingFontSize - step)
+                }
             } label: {
                 Image(systemName: "textformat.size.smaller")
                     .font(.title3)
             }
-            .disabled(readingFontSize <= ReadingDefaults.minFontSize)
+            .disabled(currentSize <= minSize)
 
-            Text("\(Int(readingFontSize))pt")
+            Text("\(Int(currentSize))pt")
                 .font(.system(.caption, design: .rounded).monospacedDigit())
                 .frame(width: 45)
 
             Button {
-                readingFontSize = min(ReadingDefaults.maxFontSize, readingFontSize + ReadingDefaults.fontSizeStep)
+                if isRSVP {
+                    rsvpFontSize = min(maxSize, rsvpFontSize + step)
+                } else {
+                    readingFontSize = min(maxSize, readingFontSize + step)
+                }
             } label: {
                 Image(systemName: "textformat.size.larger")
                     .font(.title3)
             }
-            .disabled(readingFontSize >= ReadingDefaults.maxFontSize)
+            .disabled(currentSize >= maxSize)
         }
         .padding(.vertical, 8)
     }
@@ -262,7 +285,7 @@ struct ReadingView: View {
 
             // RSVP Display at center
             ZStack {
-                RSVPDisplayView(word: coordinator.currentWord)
+                RSVPDisplayView(word: coordinator.currentWord, fontSize: rsvpFontSize)
                     .padding(.horizontal, 16)
 
                 // Play button overlay when paused (locked decision: pause freezes last word with play overlay)
