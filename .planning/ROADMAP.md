@@ -15,8 +15,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Data models, EPUB parsing, word tokenization, and file import
 - [x] **Phase 2: Reading Engine** - RSVP engine, TTS service, synchronization coordinator, and voice management
 - [x] **Phase 3: Reading Experience** - RSVP and page mode views, mode switching, TTS page sync, and speed control
-- [ ] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
-- [ ] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
+- [x] **Phase 4: Navigation & Appearance** - Table of contents, chapter skip controls, dark mode, and font size
+- [x] **Phase 5: Library** - Library grid, shelves, book management, and continue reading
 - [x] **Phase 6: Book Discovery** - Curated Project Gutenberg collections and in-app download
 - [ ] **Phase 7: iCloud Sync** - Cross-device sync of library, reading positions, and shelves
 
@@ -83,8 +83,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Table of contents navigation and jumpToChapter refactor
-- [ ] 04-02-PLAN.md — Dark mode compatibility audit and user-adjustable font size
+- [x] 04-01-PLAN.md — Table of contents navigation and jumpToChapter refactor
+- [x] 04-02-PLAN.md — Dark mode compatibility audit and user-adjustable font size
 
 ### Phase 5: Library
 **Goal**: Users can browse, organize, and manage their book collection with a polished library experience
@@ -98,8 +98,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — SchemaV2 with Shelf model, Continue Reading section, sortable All Books grid
-- [ ] 05-02-PLAN.md — Shelf management, book context menus, book deletion with file cleanup
+- [x] 05-01-PLAN.md — SchemaV2 with Shelf model, Continue Reading section, sortable All Books grid
+- [x] 05-02-PLAN.md — Shelf management, book context menus, book deletion with file cleanup
 
 ### Phase 6: Book Discovery
 **Goal**: Users can discover and download free public domain books without leaving the app
@@ -114,7 +114,7 @@ Plans:
 - [x] 06-01-PLAN.md — SchemaV3 with gutenbergId, Gutendex API models, GutendexService API client
 - [x] 06-02-PLAN.md — BookDownloadService, EPUBImportService refactoring, Discovery UI views, LibraryView integration
 - [x] 06-03-PLAN.md — Fix genre browsing blank page (CancellationError handling, retry UI)
-- [ ] 06-04-PLAN.md — Fix genre browsing performance (eliminate API preloading, trailing slash, remove mime_type filter, 30s timeout)
+- [x] 06-04-PLAN.md — Fix genre browsing performance (eliminate API preloading, trailing slash, remove mime_type filter, 30s timeout)
 
 ### Phase 7: iCloud Sync
 **Goal**: Users can read on one device and continue seamlessly on another
@@ -141,7 +141,7 @@ Note: Phase 5 depends on Phase 1 (not Phase 4), so Phases 5-7 could overlap with
 | 1. Foundation | 3/3 | Complete | 2026-02-20 |
 | 2. Reading Engine | 3/3 | Complete    | 2026-02-20 |
 | 3. Reading Experience | 2/2 | Complete | 2026-02-20 |
-| 4. Navigation & Appearance | 0/2 | Not started | - |
-| 5. Library | 0/2 | Not started | - |
-| 6. Book Discovery | 3/4 | Gap closure | - |
+| 4. Navigation & Appearance | 2/2 | Complete | 2026-02-21 |
+| 5. Library | 2/2 | Complete | 2026-02-21 |
+| 6. Book Discovery | 4/4 | Complete | 2026-02-21 |
 | 7. iCloud Sync | 0/2 | Not started | - |
