@@ -28,8 +28,10 @@ struct LibraryView: View {
     @Query(sort: \Shelf.createdDate) private var shelves: [Shelf]
     @Environment(EPUBImportService.self) private var importService
     @Environment(SyncMonitorService.self) private var syncMonitor
+    @Environment(TipJarService.self) private var tipJar
     @Environment(\.modelContext) private var modelContext
     @State private var showingError = false
+    @State private var showTipJarSheet = false
     @State private var errorMessage = ""
     @State private var recentlyImportedBookID: UUID?
     @State private var sortOption: BookSortOption = .dateAdded
@@ -108,6 +110,11 @@ struct LibraryView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: 16) {
+                    if tipJar.hasPurchased {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                            .font(.body)
+                    }
                     sortMenu
                     Button {
                         showNewShelfAlert = true
@@ -118,6 +125,12 @@ struct LibraryView: View {
                         DiscoveryView()
                     } label: {
                         Image(systemName: "globe.americas")
+                    }
+
+                    if !tipJar.hasPurchased && tipJar.product != nil {
+                        Button { showTipJarSheet = true } label: {
+                            Image(systemName: "heart")
+                        }
                     }
 
                     // Sync indicator (only visible while syncing)
@@ -193,6 +206,9 @@ struct LibraryView: View {
             }
         } message: {
             Text("Enter a name for your new shelf.")
+        }
+        .sheet(isPresented: $showTipJarSheet) {
+            TipJarSheet()
         }
         // Rename shelf alert
         .alert("Rename Shelf", isPresented: $showRenameShelfAlert) {

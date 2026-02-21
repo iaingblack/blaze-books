@@ -11,6 +11,7 @@ struct BlazeBooksApp: App {
     @State private var voiceManager = VoiceManager()
     @State private var readingCoordinator: ReadingCoordinator
     @State private var syncMonitor = SyncMonitorService()
+    @State private var tipJar = TipJarService()
 
     init() {
         do {
@@ -50,6 +51,9 @@ struct BlazeBooksApp: App {
         // Create Phase 7 services
         let syncMon = SyncMonitorService()
         _syncMonitor = State(initialValue: syncMon)
+
+        let tip = TipJarService()
+        _tipJar = State(initialValue: tip)
     }
 
     var body: some Scene {
@@ -62,9 +66,11 @@ struct BlazeBooksApp: App {
                 .environment(voiceManager)
                 .environment(readingCoordinator)
                 .environment(syncMonitor)
+                .environment(tipJar)
                 .task {
                     migrateExistingBooksToEpubData(container: modelContainer)
                     syncMonitor.startMonitoring(container: modelContainer)
+                    tipJar.start()
                 }
         }
         .modelContainer(modelContainer)
