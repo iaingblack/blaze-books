@@ -13,10 +13,10 @@ struct BlazeBooksApp: App {
         do {
             let config = ModelConfiguration("BlazeBooks")
             modelContainer = try ModelContainer(
-                for: SchemaV2.Book.self,
-                SchemaV2.Chapter.self,
-                SchemaV2.ReadingPosition.self,
-                SchemaV2.Shelf.self,
+                for: SchemaV3.Book.self,
+                SchemaV3.Chapter.self,
+                SchemaV3.ReadingPosition.self,
+                SchemaV3.Shelf.self,
                 migrationPlan: BlazeBooksMigrationPlan.self,
                 configurations: config
             )

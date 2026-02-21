@@ -1,12 +1,13 @@
 import Foundation
 import SwiftData
 
-enum SchemaV1: VersionedSchema {
-    static var versionIdentifier = Schema.Version(1, 0, 0)
+enum SchemaV3: VersionedSchema {
+    static var versionIdentifier = Schema.Version(3, 0, 0)
     static var models: [any PersistentModel.Type] = [
         Book.self,
         Chapter.self,
         ReadingPosition.self,
+        Shelf.self,
     ]
 
     @Model
@@ -19,12 +20,16 @@ enum SchemaV1: VersionedSchema {
         var importDate: Date = Date()
         var chapterCount: Int = 0
         var fileHash: String = ""
+        var gutenbergId: Int?
 
         @Relationship(deleteRule: .cascade, inverse: \Chapter.book)
         var chapters: [Chapter]? = []
 
         @Relationship(deleteRule: .cascade, inverse: \ReadingPosition.book)
         var readingPosition: ReadingPosition?
+
+        @Relationship(deleteRule: .nullify, inverse: \Shelf.books)
+        var shelves: [Shelf]? = []
 
         init() {}
 
@@ -33,7 +38,8 @@ enum SchemaV1: VersionedSchema {
             author: String,
             filePath: String,
             coverImageData: Data? = nil,
-            fileHash: String = ""
+            fileHash: String = "",
+            gutenbergId: Int? = nil
         ) {
             self.init()
             self.title = title
@@ -41,6 +47,7 @@ enum SchemaV1: VersionedSchema {
             self.filePath = filePath
             self.coverImageData = coverImageData
             self.fileHash = fileHash
+            self.gutenbergId = gutenbergId
         }
     }
 
@@ -91,12 +98,22 @@ enum SchemaV1: VersionedSchema {
             self.verificationSnippet = verificationSnippet
         }
     }
-}
 
-enum BlazeBooksMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] = [SchemaV1.self, SchemaV2.self, SchemaV3.self]
-    static var stages: [MigrationStage] = [
-        .lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self),
-        .lightweight(fromVersion: SchemaV2.self, toVersion: SchemaV3.self),
-    ]
+    @Model
+    final class Shelf {
+        var id: UUID = UUID()
+        var name: String = ""
+        var createdDate: Date = Date()
+        var sortOrder: Int = 0
+
+        @Relationship(deleteRule: .nullify)
+        var books: [Book]? = []
+
+        init() {}
+
+        convenience init(name: String) {
+            self.init()
+            self.name = name
+        }
+    }
 }
