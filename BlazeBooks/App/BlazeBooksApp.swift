@@ -6,6 +6,7 @@ struct BlazeBooksApp: App {
     let modelContainer: ModelContainer
     @State private var importService = EPUBImportService()
     @State private var gutendexService = GutendexService()
+    @State private var opdsService = GutenbergOPDSService()
     @State private var downloadService: BookDownloadService
     @State private var speedCapService = SpeedCapService()
     @State private var voiceManager = VoiceManager()
@@ -81,6 +82,7 @@ struct BlazeBooksApp: App {
             ContentView()
                 .environment(importService)
                 .environment(gutendexService)
+                .environment(opdsService)
                 .environment(downloadService)
                 .environment(speedCapService)
                 .environment(voiceManager)
