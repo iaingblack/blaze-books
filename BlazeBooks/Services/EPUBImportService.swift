@@ -27,6 +27,16 @@ final class EPUBImportService {
     var importError: String?
     var importSuccess: Bool = false
 
+    /// Tracks background extraction progress per book (keyed by fileHash).
+    /// ReadingView observes this to show extraction % and wait for chapters.
+    var extractionProgress: [String: ExtractionProgress] = [:]
+
+    struct ExtractionProgress {
+        var completedChapters: Int = 0
+        var totalChapters: Int = 0
+        var isComplete: Bool = false
+    }
+
     // MARK: - Dependencies
 
     private let parserService = EPUBParserService()
@@ -130,23 +140,23 @@ final class EPUBImportService {
             throw ImportError.alreadyInLibrary
         }
 
-        // 3. Parse EPUB with Readium
-        let parsedBook: EPUBParserService.ParsedBook
+        // 3. Fast metadata-only parse (no chapter content extraction)
+        let metadata: EPUBParserService.ParsedBookMetadata
         do {
-            parsedBook = try await parserService.parseEPUB(at: localURL)
+            metadata = try await parserService.parseEPUBMetadata(at: localURL)
         } catch {
             throw ImportError.parseFailed(error.localizedDescription)
         }
 
         // 4. Determine metadata with smart fallbacks
-        let title = parsedBook.title.isEmpty
+        let title = metadata.title.isEmpty
             ? (fallbackTitle ?? filenameWithoutExtension(from: localURL))
-            : parsedBook.title
-        let author = parsedBook.author.isEmpty
+            : metadata.title
+        let author = metadata.author.isEmpty
             ? "Unknown Author"
-            : parsedBook.author
+            : metadata.author
 
-        let coverData = parsedBook.coverData
+        let coverData = metadata.coverData
 
         // Compute relative path from Documents/Books/
         let relativePath = localURL.lastPathComponent
@@ -161,16 +171,14 @@ final class EPUBImportService {
             gutenbergId: gutenbergId,
             epubData: epubFileData
         )
-        book.chapterCount = parsedBook.chapters.count
+        book.chapterCount = metadata.chapterStubs.count
 
-        // 6. Create Chapter records
+        // 6. Create Chapter records with empty text (deferred extraction)
         var chapters: [Chapter] = []
-        for parsedChapter in parsedBook.chapters {
+        for stub in metadata.chapterStubs {
             let chapter = Chapter(
-                title: parsedChapter.title,
-                index: parsedChapter.index,
-                text: parsedChapter.text,
-                wordCount: parsedChapter.parseError ? 0 : parsedChapter.tokens.count
+                title: stub.title,
+                index: stub.index
             )
             chapter.book = book
             chapters.append(chapter)
@@ -186,8 +194,85 @@ final class EPUBImportService {
         readingPosition.book = book
         book.readingPosition = readingPosition
 
-        // 8. Insert all records into ModelContext
+        // 8. Insert all records into ModelContext (SwiftData auto-saves)
         modelContext.insert(book)
+
+        // 9. Fire background chapter extraction
+        // Key by fileHash (stable before save) instead of persistentModelID (temporary before save)
+        let progressKey = computedHash
+        let fileURL = localURL
+        let totalChapterCount = metadata.chapterStubs.count
+        extractionProgress[progressKey] = ExtractionProgress(
+            completedChapters: 0,
+            totalChapters: totalChapterCount
+        )
+        Task { [parserService, weak self] in
+            await Self.extractChaptersInBackground(
+                chapters: chapters,
+                fileURL: fileURL,
+                parserService: parserService,
+                onProgress: { completed in
+                    self?.extractionProgress[progressKey]?.completedChapters = completed
+                },
+                onComplete: {
+                    self?.extractionProgress[progressKey]?.isComplete = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 5_000_000_000) // 5s
+                        self?.extractionProgress.removeValue(forKey: progressKey)
+                    }
+                }
+            )
+        }
+    }
+
+    // MARK: - Background Chapter Extraction
+
+    /// Extracts chapter text in the background after fast import.
+    /// Re-opens the EPUB, extracts each chapter sequentially, and updates the Chapter objects directly.
+    /// Reports progress via callbacks so ReadingView can show extraction %.
+    private static func extractChaptersInBackground(
+        chapters: [Chapter],
+        fileURL: URL,
+        parserService: EPUBParserService,
+        onProgress: @MainActor @Sendable (Int) -> Void,
+        onComplete: @MainActor @Sendable () -> Void
+    ) async {
+        do {
+            let publication = try await parserService.openEPUB(at: fileURL)
+            let spineCount = publication.readingOrder.count
+            let tocMap = await parserService.tocTitleMap(from: publication)
+
+            let sortedChapters = chapters.sorted { $0.index < $1.index }
+
+            for spineIndex in 0..<spineCount {
+                guard spineIndex < sortedChapters.count else { continue }
+                let chapter = sortedChapters[spineIndex]
+
+                // Skip already-extracted chapters
+                guard chapter.text.isEmpty else {
+                    await onProgress(spineIndex + 1)
+                    continue
+                }
+
+                let parsed = await parserService.extractSingleChapter(
+                    from: publication,
+                    at: spineIndex,
+                    tocTitleMap: tocMap
+                )
+
+                chapter.text = parsed.text
+                chapter.wordCount = parsed.wordCount
+
+                await onProgress(spineIndex + 1)
+            }
+
+            await onComplete()
+        } catch {
+            await onComplete()
+            #if DEBUG
+            print("[EPUBImportService] Background extraction failed: \(error)")
+            #endif
+        }
     }
 
     // MARK: - Private Helpers
