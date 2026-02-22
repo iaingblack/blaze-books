@@ -105,18 +105,18 @@ private class OPDSFeedParser: NSObject, XMLParserDelegate {
     private var currentEntry: OPDSEntry?
     private var currentElement = ""
     private var currentText = ""
-    private var insideAuthor = false
-
     struct OPDSEntry {
         var id = ""
         var title = ""
         var author = "Unknown Author"
 
         /// Extracts the numeric book ID from the OPDS entry ID URL.
-        /// Format: "https://www.gutenberg.org/ebooks/1342" → 1342
+        /// Format: "https://www.gutenberg.org/ebooks/1342.opds" → 1342
         var bookID: Int? {
             guard let lastComponent = id.split(separator: "/").last else { return nil }
-            return Int(lastComponent)
+            // Strip ".opds" suffix if present (e.g. "1342.opds" → "1342")
+            let cleaned = lastComponent.replacingOccurrences(of: ".opds", with: "")
+            return Int(cleaned)
         }
     }
 
@@ -145,8 +145,6 @@ private class OPDSFeedParser: NSObject, XMLParserDelegate {
 
         if elementName == "entry" {
             currentEntry = OPDSEntry()
-        } else if elementName == "name" && currentEntry != nil {
-            insideAuthor = true
         } else if elementName == "link" && currentEntry == nil {
             // Feed-level link — check for pagination
             if attributes["rel"] == "next",
@@ -179,10 +177,10 @@ private class OPDSFeedParser: NSObject, XMLParserDelegate {
             if currentEntry?.title.isEmpty == true {
                 currentEntry?.title = text
             }
-        case "name":
-            if insideAuthor {
+        case "content":
+            // OPDS entries store the author name in <content type="text">
+            if !text.isEmpty {
                 currentEntry?.author = text
-                insideAuthor = false
             }
         case "entry":
             if let entry = currentEntry {
