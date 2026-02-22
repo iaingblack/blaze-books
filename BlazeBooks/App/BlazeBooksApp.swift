@@ -13,6 +13,7 @@ struct BlazeBooksApp: App {
     @State private var readingCoordinator: ReadingCoordinator
     @State private var syncMonitor = SyncMonitorService()
     @State private var tipJar = TipJarService()
+    @State private var showSplash = true
 
     init() {
         do {
@@ -79,21 +80,27 @@ struct BlazeBooksApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(importService)
-                .environment(gutendexService)
-                .environment(opdsService)
-                .environment(downloadService)
-                .environment(speedCapService)
-                .environment(voiceManager)
-                .environment(readingCoordinator)
-                .environment(syncMonitor)
-                .environment(tipJar)
-                .task {
-                    migrateExistingBooksToEpubData(container: modelContainer)
-                    syncMonitor.startMonitoring(container: modelContainer)
-                    tipJar.start()
+            ZStack {
+                ContentView()
+                    .environment(importService)
+                    .environment(gutendexService)
+                    .environment(opdsService)
+                    .environment(downloadService)
+                    .environment(speedCapService)
+                    .environment(voiceManager)
+                    .environment(readingCoordinator)
+                    .environment(syncMonitor)
+                    .environment(tipJar)
+
+                if showSplash {
+                    SplashView { showSplash = false }
                 }
+            }
+            .task {
+                migrateExistingBooksToEpubData(container: modelContainer)
+                syncMonitor.startMonitoring(container: modelContainer)
+                tipJar.start()
+            }
         }
         .modelContainer(modelContainer)
     }
