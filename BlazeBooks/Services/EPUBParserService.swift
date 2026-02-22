@@ -31,8 +31,17 @@ final class EPUBParserService {
         let title: String
         let index: Int
         let text: String
-        let tokens: [WordToken]
+        let wordCount: Int
         let parseError: Bool
+    }
+
+    /// Lightweight metadata extracted without reading chapter content.
+    /// Used for fast import — chapter text is extracted later in background.
+    struct ParsedBookMetadata {
+        let title: String
+        let author: String
+        let coverData: Data?
+        let chapterStubs: [(title: String, index: Int)]
     }
 
     // MARK: - Readium Components (excluded from observation tracking)
@@ -138,6 +147,90 @@ final class EPUBParserService {
             coverData: coverData,
             chapters: chapters
         )
+    }
+
+    /// Fast metadata-only parse: extracts title, author, cover, and chapter stubs (title + index)
+    /// without reading any chapter content. Used for deferred extraction import flow.
+    func parseEPUBMetadata(at fileURL: URL) async throws -> ParsedBookMetadata {
+        isParsing = true
+        parseProgress = 0.0
+        defer {
+            isParsing = false
+            parseProgress = 1.0
+        }
+
+        let publication = try await openEPUB(at: fileURL)
+
+        let title = publication.metadata.title ?? ""
+        let author = publication.metadata.authors.first?.name ?? ""
+        let coverData = await extractCoverData(from: publication)
+
+        parseProgress = 0.5
+
+        // Build chapter stubs from spine + TOC titles (no content reading)
+        let tocTitleMap = await buildTOCTitleMap(from: publication)
+        let spineLinks = publication.readingOrder
+
+        var chapterStubs: [(title: String, index: Int)] = []
+        for (index, spineLink) in spineLinks.enumerated() {
+            let href = spineLink.url().string
+            let chapterTitle = tocTitleMap[href]
+                ?? spineLink.title
+                ?? "Chapter \(index + 1)"
+            chapterStubs.append((title: chapterTitle, index: index))
+        }
+
+        return ParsedBookMetadata(
+            title: title,
+            author: author,
+            coverData: coverData,
+            chapterStubs: chapterStubs
+        )
+    }
+
+    /// Extracts a single chapter's text from an already-opened publication by spine index.
+    /// Used for on-demand and background extraction after fast metadata-only import.
+    ///
+    /// - Parameters:
+    ///   - publication: The Readium Publication to extract from.
+    ///   - spineIndex: The spine index of the chapter.
+    ///   - tocTitleMap: Optional pre-built TOC title map. Pass this when extracting multiple
+    ///     chapters to avoid redundant `buildTOCTitleMap` calls per chapter.
+    func extractSingleChapter(
+        from publication: Publication,
+        at spineIndex: Int,
+        tocTitleMap: [String: String]? = nil
+    ) async -> ParsedChapter {
+        let spineLinks = publication.readingOrder
+        guard spineIndex >= 0, spineIndex < spineLinks.count else {
+            return ParsedChapter(
+                title: "Chapter \(spineIndex + 1)",
+                index: spineIndex,
+                text: "This chapter could not be displayed",
+                wordCount: 0,
+                parseError: true
+            )
+        }
+
+        let spineLink = spineLinks[spineIndex]
+        let resolvedMap: [String: String]
+        if let tocTitleMap {
+            resolvedMap = tocTitleMap
+        } else {
+            resolvedMap = await buildTOCTitleMap(from: publication)
+        }
+        let href = spineLink.url().string
+        let title = resolvedMap[href]
+            ?? spineLink.title
+            ?? "Chapter \(spineIndex + 1)"
+
+        return await extractChapter(from: publication, spineLink: spineLink, title: title, index: spineIndex)
+    }
+
+    /// Builds a TOC title map from the publication's table of contents.
+    /// Exposed for callers that extract multiple chapters and want to build the map once.
+    func tocTitleMap(from publication: Publication) async -> [String: String] {
+        await buildTOCTitleMap(from: publication)
     }
 
     // MARK: - Private Helpers
@@ -246,12 +339,12 @@ final class EPUBParserService {
 
         if let text = text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let cleanText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            let tokens = tokenizer.tokenize(cleanText)
+            let wordCount = tokenizer.countWords(in: cleanText)
             return ParsedChapter(
                 title: title,
                 index: index,
                 text: cleanText,
-                tokens: tokens,
+                wordCount: wordCount,
                 parseError: false
             )
         }
@@ -261,12 +354,12 @@ final class EPUBParserService {
 
         if let contentText = contentText, !contentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let cleanText = contentText.trimmingCharacters(in: .whitespacesAndNewlines)
-            let tokens = tokenizer.tokenize(cleanText)
+            let wordCount = tokenizer.countWords(in: cleanText)
             return ParsedChapter(
                 title: title,
                 index: index,
                 text: cleanText,
-                tokens: tokens,
+                wordCount: wordCount,
                 parseError: false
             )
         }
@@ -276,7 +369,7 @@ final class EPUBParserService {
             title: title,
             index: index,
             text: "This chapter could not be displayed",
-            tokens: [],
+            wordCount: 0,
             parseError: true
         )
     }
@@ -354,8 +447,63 @@ final class EPUBParserService {
         var ignoredBlock: String? = nil  // the tag name we're currently ignoring
         var lastWasSpace = false
         var newlineCount = 0
+        var inEntity = false
+        var entityBuffer = ""
 
         for ch in html {
+            // Entity buffering: collect characters between '&' and ';'
+            if inEntity {
+                if ch == ";" {
+                    inEntity = false
+                    // Resolve the entity
+                    var resolved: Character? = nil
+                    if entityBuffer.hasPrefix("#") {
+                        // Numeric entity: &#123; or &#x1F;
+                        let numPart = String(entityBuffer.dropFirst())
+                        let code: UInt32?
+                        if numPart.hasPrefix("x") || numPart.hasPrefix("X") {
+                            code = UInt32(String(numPart.dropFirst()), radix: 16)
+                        } else {
+                            code = UInt32(numPart)
+                        }
+                        if let code = code, let scalar = Unicode.Scalar(code) {
+                            resolved = Character(scalar)
+                        }
+                    } else {
+                        resolved = entityMap[entityBuffer]
+                    }
+
+                    if let ch = resolved {
+                        if ch == " " {
+                            if !lastWasSpace {
+                                output.append(" ")
+                                lastWasSpace = true
+                            }
+                        } else {
+                            output.append(ch)
+                            lastWasSpace = false
+                            newlineCount = 0
+                        }
+                    } else {
+                        // Unknown entity — emit as-is
+                        output.append("&")
+                        output.append(entityBuffer)
+                        output.append(";")
+                        lastWasSpace = false
+                        newlineCount = 0
+                    }
+                    continue
+                } else if ch == "<" || ch == " " || ch == "\n" || entityBuffer.count > 10 {
+                    // Not a valid entity — emit buffered content and process current char
+                    inEntity = false
+                    output.append("&")
+                    output.append(entityBuffer)
+                    // Fall through to normal character processing below
+                } else {
+                    entityBuffer.append(ch)
+                    continue
+                }
+            }
             if insideTag {
                 if ch == ">" {
                     insideTag = false
@@ -427,8 +575,14 @@ final class EPUBParserService {
             }
 
             // Normal character — append with whitespace normalization
-            // (HTML entities like &amp; pass through here and are decoded in a post-pass
-            // on the much smaller stripped text)
+            // Entity decoding is handled inline: buffer chars after '&' until ';'
+            if ch == "&" {
+                // Start entity buffering
+                entityBuffer = ""
+                inEntity = true
+                continue
+            }
+
             if ch == "\n" || ch == "\r" {
                 if newlineCount < 2 {
                     output.append("\n")
@@ -447,41 +601,7 @@ final class EPUBParserService {
             }
         }
 
-        // Decode HTML entities in the stripped text (cheap on clean text)
-        var result = output
-        for (name, replacement) in entityMap {
-            result = result.replacingOccurrences(of: "&\(name);", with: String(replacement))
-        }
-        // Handle numeric entities (&#39;, &#160;, etc.)
-        if result.contains("&#") {
-            var decoded = ""
-            decoded.reserveCapacity(result.count)
-            var i = result.startIndex
-            while i < result.endIndex {
-                if result[i] == "&",
-                   result.index(after: i) < result.endIndex,
-                   result[result.index(after: i)] == "#" {
-                    var j = result.index(i, offsetBy: 2)
-                    var numStr = ""
-                    while j < result.endIndex && result[j] != ";" && numStr.count < 7 {
-                        numStr.append(result[j])
-                        j = result.index(after: j)
-                    }
-                    if j < result.endIndex && result[j] == ";",
-                       let code = UInt32(numStr),
-                       let scalar = Unicode.Scalar(code) {
-                        decoded.append(Character(scalar))
-                        i = result.index(after: j)
-                        continue
-                    }
-                }
-                decoded.append(result[i])
-                i = result.index(after: i)
-            }
-            result = decoded
-        }
-
-        return result.trimmingCharacters(in: .whitespacesAndNewlines)
+        return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Extracts the tag name from a tag string like "div class='x'" → "div".

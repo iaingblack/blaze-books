@@ -27,35 +27,48 @@ struct WordTokenizer {
     func tokenize(_ text: String) -> [WordToken] {
         guard !text.isEmpty else { return [] }
 
-        // First pass: collect sentence end indices
+        // First pass: collect sentence end indices in document order
         let sentenceTokenizer = NLTokenizer(unit: .sentence)
         sentenceTokenizer.string = text
         sentenceTokenizer.setLanguage(.english)
 
-        var sentenceEnds: Set<String.Index> = []
+        var sortedSentenceEnds: [String.Index] = []
         sentenceTokenizer.enumerateTokens(
             in: text.startIndex..<text.endIndex
         ) { range, _ in
-            sentenceEnds.insert(range.upperBound)
+            sortedSentenceEnds.append(range.upperBound)
             return true
         }
 
-        // Second pass: enumerate words with sentence boundary flags
+        // Second pass: enumerate words with sentence boundary flags.
+        // Both words and sentence ends are in document order, so we advance
+        // a pointer monotonically — O(n+m) instead of O(n*m).
         let wordTokenizer = NLTokenizer(unit: .word)
         wordTokenizer.string = text
         wordTokenizer.setLanguage(.english)
 
         var tokens: [WordToken] = []
         var wordIndex = 0
+        var sentencePointer = 0
 
         wordTokenizer.enumerateTokens(
             in: text.startIndex..<text.endIndex
         ) { range, _ in
             let word = String(text[range])
 
-            // Check if any sentence end falls within or at the end of this word's range
-            let isSentenceEnd = sentenceEnds.contains { sentenceEnd in
-                sentenceEnd >= range.lowerBound && sentenceEnd <= range.upperBound
+            // Advance past sentence ends that fall before this word
+            while sentencePointer < sortedSentenceEnds.count
+                    && sortedSentenceEnds[sentencePointer] < range.lowerBound {
+                sentencePointer += 1
+            }
+
+            // Check if the next sentence end falls within or at the end of this word
+            let isSentenceEnd = sentencePointer < sortedSentenceEnds.count
+                && sortedSentenceEnds[sentencePointer] <= range.upperBound
+
+            // Consume the sentence end if it matched
+            if isSentenceEnd {
+                sentencePointer += 1
             }
 
             tokens.append(WordToken(
@@ -69,6 +82,28 @@ struct WordTokenizer {
         }
 
         return tokens
+    }
+
+    /// Counts words in the given text without allocating token objects.
+    ///
+    /// Uses a single `NLTokenizer(unit: .word)` pass with the same language
+    /// settings as `tokenize()`, so counts are identical. No sentence detection,
+    /// no object allocation — just counting.
+    func countWords(in text: String) -> Int {
+        guard !text.isEmpty else { return 0 }
+
+        let wordTokenizer = NLTokenizer(unit: .word)
+        wordTokenizer.string = text
+        wordTokenizer.setLanguage(.english)
+
+        var count = 0
+        wordTokenizer.enumerateTokens(
+            in: text.startIndex..<text.endIndex
+        ) { _, _ in
+            count += 1
+            return true
+        }
+        return count
     }
 
     /// Returns a 3-word window around the given index for position verification.

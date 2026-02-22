@@ -63,10 +63,24 @@ final class TTSService {
     @ObservationIgnored
     var onChapterComplete: (() -> Void)?
 
+    /// Called when an utterance fails with an error.
+    /// The coordinator uses this to reset playback state.
+    @ObservationIgnored
+    var onError: (() -> Void)?
+
     // MARK: - Initialization
 
     init() {
         delegateHandler = DelegateHandler(owner: self)
+        warmUpAudioSession()
+    }
+
+    /// Pre-warms the audio session and synthesizer to avoid cold-start failures.
+    /// AVSpeechSynthesizer can fail its first utterance if the audio subsystem isn't ready.
+    private func warmUpAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+        try? session.setActive(true)
     }
 
     // MARK: - Chapter Preparation
@@ -173,9 +187,11 @@ final class TTSService {
         currentSentenceIndex = targetSentenceIndex
         currentGlobalWordIndex = fromWordIndex
 
+        // Ensure audio session is active before speaking
+        warmUpAudioSession()
+
         // Create fresh synthesizer per chapter/start (per Pitfall 2)
         synthesizer = AVSpeechSynthesizer()
-        synthesizer?.usesApplicationAudioSession = false
         synthesizer?.delegate = delegateHandler
 
         isSpeaking = true
@@ -380,8 +396,12 @@ final class TTSService {
             _ synthesizer: AVSpeechSynthesizer,
             didCancel utterance: AVSpeechUtterance
         ) {
+            // Note: TTSService.stop() nils the delegate BEFORE calling stopSpeaking,
+            // so this only fires on unexpected cancellations (voice errors, system interruption).
             Task { @MainActor in
-                self.owner?.isSpeaking = false
+                guard let owner = self.owner else { return }
+                owner.isSpeaking = false
+                owner.onError?()
             }
         }
     }

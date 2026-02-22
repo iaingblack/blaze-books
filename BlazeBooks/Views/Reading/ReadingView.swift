@@ -41,7 +41,9 @@ struct ReadingView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ReadingCoordinator.self) private var coordinator
     @Environment(VoiceManager.self) private var voiceManager
+    @Environment(EPUBImportService.self) private var importService
     @State private var positionService = ReadingPositionService()
+    @State private var parserService = EPUBParserService()
     @State private var currentChapterIndex: Int = 0
     @State private var chapterText: String = ""
     @State private var chapterTitle: String = ""
@@ -99,7 +101,7 @@ struct ReadingView: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
-                    Text("Opening book\u{2026}")
+                    Text(loadingStatusText)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -146,10 +148,25 @@ struct ReadingView: View {
             positionSaveTask?.cancel()
         }
         .onChange(of: coordinator.currentChapterIndex) { _, newChapter in
-            // Coordinator reports chapter change (auto-advance)
+            // Coordinator reports chapter change (auto-advance or needs-extraction)
             if newChapter != currentChapterIndex {
+                let wasPlaying = coordinator.isPlaying
                 currentChapterIndex = newChapter
-                loadChapter(at: newChapter)
+
+                let chapters = sortedChapters
+                if newChapter < chapters.count && chapters[newChapter].text.isEmpty {
+                    // Chapter needs extraction — load will extract async, then resume
+                    isLoading = true
+                    Task {
+                        await extractChapterOnDemand(
+                            chapter: chapters[newChapter],
+                            index: newChapter,
+                            resumePlayback: wasPlaying || !coordinator.isPlaying
+                        )
+                    }
+                } else {
+                    loadChapter(at: newChapter)
+                }
             }
         }
         .onChange(of: coordinator.currentWordIndex) { _, _ in
@@ -373,6 +390,12 @@ struct ReadingView: View {
             HStack(spacing: 8) {
                 // TTS toggle
                 Button {
+                    if !coordinator.isTTSEnabled {
+                        // Ensure voice is set before enabling TTS to avoid silent failures
+                        if let voice = voiceManager.selectedVoice {
+                            coordinator.setVoice(identifier: voice.identifier)
+                        }
+                    }
                     coordinator.setTTSEnabled(!coordinator.isTTSEnabled)
                 } label: {
                     Image(systemName: coordinator.isTTSEnabled ? "speaker.wave.2.fill" : "speaker.slash")
@@ -464,6 +487,17 @@ struct ReadingView: View {
     private var wordProgressText: String {
         guard coordinator.totalWordCount > 0 else { return "" }
         return "Word \(coordinator.currentWordIndex + 1) of \(coordinator.totalWordCount)"
+    }
+
+    /// Dynamic loading status: shows extraction progress if the import service
+    /// is actively extracting this book's chapters, otherwise a generic message.
+    private var loadingStatusText: String {
+        if let progress = importService.extractionProgress[book.fileHash],
+           progress.totalChapters > 0 {
+            let pct = Int(Double(progress.completedChapters) / Double(progress.totalChapters) * 100)
+            return "Extracting chapters\u{2026} \(pct)%"
+        }
+        return "Preparing chapter\u{2026}"
     }
 
     // MARK: - Chapter Navigation Bar
@@ -594,24 +628,51 @@ struct ReadingView: View {
         coordinator.stop()
 
         currentChapterIndex = newIndex
-        loadChapter(at: newIndex)
 
-        // Reload coordinator for new chapter (always, since book is loaded on init)
-        let chapterTexts = sortedChapters.map(\.text)
-        coordinator.loadBook(
-            chapterTexts: chapterTexts,
-            startChapter: newIndex,
-            startWord: 0
-        )
+        let chapters = sortedChapters
+        let chapter = chapters[newIndex]
 
-        // Save position at new chapter start
-        positionService.savePosition(
-            book: book,
-            chapterIndex: newIndex,
-            scrollFraction: 0,
-            chapterText: chapterText,
-            modelContext: modelContext
-        )
+        // If chapter needs extraction, loadChapter will handle async extraction
+        // and we reload the coordinator after content is available
+        if chapter.text.isEmpty {
+            loadChapter(at: newIndex)
+            // After on-demand extraction completes (async), the coordinator
+            // will be updated via extractChapterOnDemand → updateChapterText
+            Task {
+                // Wait for extraction to finish (isLoading becomes false)
+                while isLoading {
+                    try? await Task.sleep(nanoseconds: 50_000_000) // 50ms poll
+                }
+                let chapterTexts = sortedChapters.map(\.text)
+                coordinator.loadBook(
+                    chapterTexts: chapterTexts,
+                    startChapter: newIndex,
+                    startWord: 0
+                )
+                positionService.savePosition(
+                    book: book,
+                    chapterIndex: newIndex,
+                    scrollFraction: 0,
+                    chapterText: chapterText,
+                    modelContext: modelContext
+                )
+            }
+        } else {
+            loadChapter(at: newIndex)
+            let chapterTexts = sortedChapters.map(\.text)
+            coordinator.loadBook(
+                chapterTexts: chapterTexts,
+                startChapter: newIndex,
+                startWord: 0
+            )
+            positionService.savePosition(
+                book: book,
+                chapterIndex: newIndex,
+                scrollFraction: 0,
+                chapterText: chapterText,
+                modelContext: modelContext
+            )
+        }
     }
 
     // MARK: - Loading
@@ -620,20 +681,43 @@ struct ReadingView: View {
         positionService.loadPosition(for: book, modelContext: modelContext)
         currentChapterIndex = positionService.currentChapterIndex
 
-        loadChapter(at: currentChapterIndex)
+        let chapters = sortedChapters
+        let startChapter = currentChapterIndex
 
-        // Load book into coordinator on initial appear (both modes need it for position tracking)
+        // If the starting chapter hasn't been extracted yet, extract it first
+        if startChapter < chapters.count && chapters[startChapter].text.isEmpty {
+            isLoading = true
+            Task {
+                await extractChapterOnDemand(chapter: chapters[startChapter], index: startChapter)
+                finishInitialLoad(startWord: positionService.currentWordIndex)
+            }
+            return
+        }
+
+        loadChapter(at: currentChapterIndex)
+        finishInitialLoad(startWord: positionService.currentWordIndex)
+    }
+
+    /// Completes initial loading after the starting chapter's text is available.
+    private func finishInitialLoad(startWord: Int) {
         let chapterTexts = sortedChapters.map(\.text)
         coordinator.loadBook(
             chapterTexts: chapterTexts,
             startChapter: currentChapterIndex,
-            startWord: positionService.currentWordIndex
+            startWord: startWord
         )
 
+        // Wire auto-advance extraction callback.
+        // When auto-advance encounters an un-extracted chapter, the coordinator pauses
+        // and sets currentChapterIndex (triggering the view's onChange → loadChapter).
+        // loadChapter handles extraction and the view is updated. But we also need to
+        // resume playback, which the onChange handler doesn't do. So we use the callback.
+        wireChapterExtractionCallback()
+
         // Set initial scroll target for PageModeView position restoration
-        if positionService.currentWordIndex > 0 && !pageParagraphs.isEmpty {
+        if startWord > 0 && !pageParagraphs.isEmpty {
             if let pIdx = pageTextService.paragraphIndex(
-                forWordIndex: positionService.currentWordIndex,
+                forWordIndex: startWord,
                 paragraphs: pageParagraphs
             ) {
                 initialPageScrollTarget = pageParagraphs[pIdx].id
@@ -642,6 +726,52 @@ struct ReadingView: View {
 
         // Verify position using snippet
         verifyPosition()
+    }
+
+    /// Wires the coordinator's onChapterNeedsExtraction callback for auto-advance.
+    /// When auto-advance hits an un-extracted chapter, the coordinator pauses and calls this.
+    /// Uses the same wait-then-fallback pattern as extractChapterOnDemand to avoid
+    /// redundant openEPUB calls when the import's background extraction is running.
+    private func wireChapterExtractionCallback() {
+        let book = self.book
+        let parserService = self.parserService
+        let importService = self.importService
+
+        coordinator.onChapterNeedsExtraction = { chapterIndex in
+            Task { @MainActor in
+                let chapters = (book.chapters ?? []).sorted { $0.index < $1.index }
+                guard chapterIndex < chapters.count else { return }
+                let chapter = chapters[chapterIndex]
+                guard chapter.text.isEmpty else { return }
+
+                // Wait for background extraction if running
+                if let progress = importService.extractionProgress[book.fileHash],
+                   !progress.isComplete {
+                    for _ in 0..<20 {
+                        try? await Task.sleep(nanoseconds: 100_000_000)
+                        if !chapter.text.isEmpty { break }
+                    }
+                }
+
+                // If background filled it, done
+                if !chapter.text.isEmpty { return }
+
+                // Fallback: extract directly
+                let filePath = book.filePath
+                guard !filePath.isEmpty else { return }
+                let booksDir = FileStorageManager.booksDirectory
+                let fileURL = booksDir.appendingPathComponent(filePath)
+
+                do {
+                    let publication = try await parserService.openEPUB(at: fileURL)
+                    let parsed = await parserService.extractSingleChapter(from: publication, at: chapterIndex)
+                    chapter.text = parsed.text
+                    chapter.wordCount = parsed.wordCount
+                } catch {
+                    return
+                }
+            }
+        }
     }
 
     private func loadChapter(at index: Int) {
@@ -657,14 +787,92 @@ struct ReadingView: View {
 
         let chapter = chapters[index]
         chapterTitle = chapter.title
+
+        // If chapter text hasn't been extracted yet, extract on-demand
+        if chapter.text.isEmpty {
+            isLoading = true
+            Task {
+                await extractChapterOnDemand(chapter: chapter, index: index)
+            }
+            return
+        }
+
+        applyChapterContent(chapter: chapter, index: index)
+    }
+
+    /// Extracts a single chapter's text on-demand when it hasn't been background-extracted yet.
+    ///
+    /// Uses a wait-then-fallback strategy: if the import service's background extraction is
+    /// actively running for this book, polls briefly (up to 2s) for the background task to
+    /// fill this chapter — avoiding a redundant `openEPUB` call. Falls back to direct
+    /// extraction if the background task doesn't reach this chapter in time, or if no
+    /// background extraction is running (e.g. CloudKit sync books).
+    ///
+    /// If `resumePlayback` is true, reloads the coordinator and resumes after extraction.
+    private func extractChapterOnDemand(chapter: Chapter, index: Int, resumePlayback: Bool = false) async {
+        // Wait for import's background extraction if it's actively running
+        if let progress = importService.extractionProgress[book.fileHash],
+           !progress.isComplete {
+            // Poll for up to 2 seconds — background extraction processes ~5-10 chapters/sec
+            for _ in 0..<20 {
+                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                if !chapter.text.isEmpty { break }
+            }
+        }
+
+        // If background filled it, use it directly
+        if !chapter.text.isEmpty {
+            coordinator.updateChapterText(at: index, text: chapter.text)
+            applyChapterContent(chapter: chapter, index: index)
+            if resumePlayback {
+                let chapterTexts = sortedChapters.map(\.text)
+                coordinator.loadBook(chapterTexts: chapterTexts, startChapter: index, startWord: 0)
+                coordinator.play()
+            }
+            return
+        }
+
+        // Fallback: extract ourselves (no background running, or it hasn't reached us)
+        let filePath = book.filePath
+        guard !filePath.isEmpty else {
+            isBrokenChapter = true
+            isLoading = false
+            return
+        }
+
+        let booksDir = FileStorageManager.booksDirectory
+        let fileURL = booksDir.appendingPathComponent(filePath)
+
+        do {
+            let publication = try await parserService.openEPUB(at: fileURL)
+            let parsed = await parserService.extractSingleChapter(from: publication, at: index)
+
+            chapter.text = parsed.text
+            chapter.wordCount = parsed.wordCount
+
+            coordinator.updateChapterText(at: index, text: parsed.text)
+            applyChapterContent(chapter: chapter, index: index)
+
+            if resumePlayback {
+                let chapterTexts = sortedChapters.map(\.text)
+                coordinator.loadBook(chapterTexts: chapterTexts, startChapter: index, startWord: 0)
+                coordinator.play()
+            }
+        } catch {
+            isBrokenChapter = true
+            isLoading = false
+        }
+    }
+
+    /// Applies chapter content to view state after text is available.
+    private func applyChapterContent(chapter: Chapter, index: Int) {
         chapterText = chapter.text
 
-        // Check for broken chapter
-        isBrokenChapter = chapter.wordCount == 0 ||
+        // Check for broken chapter: wordCount==0 with non-empty text means parse error
+        isBrokenChapter = (chapter.wordCount == 0 && !chapter.text.isEmpty) ||
             chapter.text == "This chapter could not be displayed"
 
         if !isBrokenChapter {
-            // Compute pageParagraphs for PageModeView (pre-tokenized with word ranges)
             pageParagraphs = pageTextService.splitIntoParagraphs(
                 text: chapter.text, chapterIndex: index
             )

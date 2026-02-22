@@ -82,6 +82,11 @@ final class ReadingCoordinator {
     @ObservationIgnored
     private var totalChapters: Int = 0
 
+    /// Callback when auto-advance reaches a chapter whose text hasn't been extracted yet.
+    /// ReadingView handles this by extracting the chapter on-demand and calling `updateChapterText`.
+    @ObservationIgnored
+    var onChapterNeedsExtraction: ((Int) -> Void)?
+
     /// Task handle for chapter auto-advance delay, allowing cancellation if user intervenes.
     @ObservationIgnored
     private var autoAdvanceTask: Task<Void, Never>?
@@ -120,6 +125,9 @@ final class ReadingCoordinator {
         }
         ttsService.onChapterComplete = { [weak self] in
             self?.handleChapterComplete()
+        }
+        ttsService.onError = { [weak self] in
+            self?.handleTTSError()
         }
     }
 
@@ -364,7 +372,21 @@ final class ReadingCoordinator {
         ttsService.setRate(speedCapService.wpmToRate(effectiveWPM, forVoice: identifier))
     }
 
+    /// Updates the cached chapter text at the given index.
+    /// Called after background or on-demand extraction fills in a chapter's content.
+    func updateChapterText(at index: Int, text: String) {
+        guard index >= 0, index < chapterTexts.count else { return }
+        chapterTexts[index] = text
+    }
+
     // MARK: - Private Methods
+
+    /// Handles unexpected TTS cancellation (voice error, system interruption).
+    /// Resets playback state so the user isn't stuck with a "playing" UI but no audio.
+    private func handleTTSError() {
+        stopRSVPObservation()
+        isPlaying = false
+    }
 
     /// Handles TTS word-boundary callbacks by updating RSVP display.
     ///
@@ -418,12 +440,22 @@ final class ReadingCoordinator {
         currentChapterIndex = chapterIndex
         let chapterText = chapterTexts[chapterIndex]
 
+        // If chapter text hasn't been extracted yet, request extraction via callback.
+        // The view will extract the chapter, call updateChapterText, and resume playback.
+        if chapterText.isEmpty {
+            isPlaying = false
+            stopRSVPObservation()
+            onChapterNeedsExtraction?(chapterIndex)
+            return
+        }
+
         rsvpEngine.loadChapter(text: chapterText)
         ttsService.prepareChapter(chapterText)
 
         totalWordCount = rsvpEngine.wordCount
         currentWordIndex = 0
         currentWord = rsvpEngine.word(at: 0)
+        hasPlayedInChapter = false
 
         // Resume playback in the current mode
         play()
