@@ -1,0 +1,307 @@
+/* BlazeBooks – dark theme derived from app icon palette
+   Background:  deep charcoal  #111118
+   Surface:     elevated dark   #1c1c26
+   Border:      subtle line     #2a2a38
+   Accent fire: orange          #FF6B1A
+   Accent beam: electric blue   #4FC3F7
+   Text:        off-white       #e8e8f0
+   Muted text:  grey-blue       #8888a8
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:          #111118;
+  --surface:     #1c1c26;
+  --border:      #2a2a38;
+  --fire:        #FF6B1A;
+  --fire-dim:    #c74e0f;
+  --beam:        #4FC3F7;
+  --text:        #e8e8f0;
+  --muted:       #8888a8;
+  --radius:      10px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* ── Layout ── */
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.site-header img.app-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.site-header .app-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.site-header .app-name span {
+  color: var(--fire);
+}
+
+.layout {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+/* ── Sidebar TOC ── */
+
+.sidebar {
+  flex: 0 0 220px;
+  position: sticky;
+  top: 88px;
+}
+
+.sidebar nav {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.sidebar nav h2 {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.sidebar nav ol {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar nav ol li a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar nav ol li a:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* ── Main Content ── */
+
+main {
+  flex: 1;
+  min-width: 0;
+}
+
+main > h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 1.05rem;
+  margin-bottom: 48px;
+}
+
+section {
+  margin-bottom: 56px;
+}
+
+section h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--fire);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+section h2 .icon {
+  color: var(--fire);
+  font-style: normal;
+}
+
+section h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--beam);
+  margin: 24px 0 10px;
+}
+
+section p {
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+section ul,
+section ol {
+  padding-left: 20px;
+  margin-bottom: 14px;
+}
+
+section li {
+  margin-bottom: 6px;
+}
+
+/* ── Screenshot placeholders ── */
+
+.screenshot {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 9 / 18;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.screenshot.landscape {
+  aspect-ratio: 16 / 9;
+  max-width: 680px;
+}
+
+.screenshot svg {
+  opacity: 0.35;
+}
+
+.screenshot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: block;
+}
+
+/* ── Tip box ── */
+
+.tip {
+  background: color-mix(in srgb, var(--fire) 8%, var(--surface));
+  border-left: 3px solid var(--fire);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.tip strong {
+  color: var(--fire);
+}
+
+/* ── Inline code ── */
+
+code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.875em;
+  color: var(--beam);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ── Keyboard shortcut / badge ── */
+
+.badge {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 8px;
+  font-size: 0.82rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ── Footer ── */
+
+.site-footer {
+  text-align: center;
+  padding: 32px 24px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.site-footer a {
+  color: var(--beam);
+  text-decoration: none;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 720px) {
+  .layout {
+    flex-direction: column;
+    gap: 32px;
+    padding: 24px 16px;
+  }
+
+  .sidebar {
+    flex: unset;
+    width: 100%;
+    position: static;
+  }
+
+  .screenshot {
+    max-width: 100%;
+  }
+
+  main > h1 {
+    font-size: 1.6rem;
+  }
+}

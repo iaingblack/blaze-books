@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlazeBooks – User Guide</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="site-header">
+    <img class="app-icon" src="screenshots/app-icon.png" alt="BlazeBooks icon" />
+    <span class="app-name"><span>Blaze</span>Books</span>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <nav aria-label="Page sections">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#getting-books">Getting Books</a></li>
+          <li><a href="#your-library">Your Library</a></li>
+          <li><a href="#reading-modes">Reading Modes</a></li>
+          <li><a href="#text-to-speech">Text-to-Speech</a></li>
+          <li><a href="#speed-controls">Speed Controls</a></li>
+          <li><a href="#navigation">Navigation</a></li>
+          <li><a href="#discover">Discover Free Books</a></li>
+          <li><a href="#icloud">iCloud Sync</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <!-- ── Main ── -->
+    <main>
+      <h1>User Guide</h1>
+      <p class="subtitle">BlazeBooks is an iOS EPUB reader with RSVP speed reading and text-to-speech.</p>
+
+      <!-- Getting Books -->
+      <section id="getting-books">
+        <h2><i class="icon">📥</i> Getting Books</h2>
+        <p>You can add books in two ways: import from your own files, or download free titles from the built-in Discover tab.</p>
+
+        <h3>Import from Files</h3>
+        <p>Tap the <strong>+</strong> button in the Library to open the file picker. Browse to any <code>.epub</code> file stored in Files, iCloud Drive, or another document provider and select it. The book will be imported and appear in your library straight away.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: import button and file picker">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6M12 9v6"/></svg>
+          <span>Screenshot: Import button &amp; file picker</span>
+        </div>
+
+        <div class="tip"><strong>Tip:</strong> If your EPUB has many chapters, BlazeBooks imports the metadata immediately and extracts the full text in the background. A progress indicator on the book cover shows extraction status.</div>
+
+        <h3>Download from Discover</h3>
+        <p>Open the <strong>Discover</strong> tab to browse thousands of free public domain books from Project Gutenberg. Browse by genre or search by title or author, then tap a book to see its details and tap <strong>Download</strong>.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Discover tab">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span>Screenshot: Discover tab with genre grid</span>
+        </div>
+      </section>
+
+      <!-- Your Library -->
+      <section id="your-library">
+        <h2><i class="icon">📚</i> Your Library</h2>
+        <p>The Library tab shows all your books organised into three sections:</p>
+        <ul>
+          <li><strong>Continue Reading</strong> — a horizontal strip of recently opened books, each with a reading progress bar</li>
+          <li><strong>Shelves</strong> — collapsible custom shelves for organising your collection</li>
+          <li><strong>All Books</strong> — a full grid of every imported book, sortable by Title, Author, Recently Read, or Date Added</li>
+        </ul>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Library view">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5a2 2 0 0 1 2-2h13a1 1 0 0 1 0 10H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h13"/></svg>
+          <span>Screenshot: Library with Continue Reading strip and book grid</span>
+        </div>
+
+        <h3>Organising Books</h3>
+        <p><strong>Long-press</strong> any book cover to open a context menu with options to add or remove from a shelf, or delete the book from your library.</p>
+
+        <h3>Creating Shelves</h3>
+        <p>Tap the shelf icon in the toolbar to create a new shelf. Give it a name — e.g. <em>Science Fiction</em> or <em>Reading List</em> — and books can be assigned via the long-press menu.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: context menu and shelf management">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          <span>Screenshot: Long-press context menu</span>
+        </div>
+      </section>
+
+      <!-- Reading Modes -->
+      <section id="reading-modes">
+        <h2><i class="icon">📖</i> Reading Modes</h2>
+        <p>BlazeBooks has two reading modes, switchable at any time. Your position is preserved when you switch.</p>
+
+        <h3>Page Mode</h3>
+        <p>The default reading experience. Text is displayed as a continuous scroll, chapter by chapter, with comfortable typography — just like any standard ebook reader.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Page mode">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+          <span>Screenshot: Page mode reading view</span>
+        </div>
+
+        <h3>RSVP Mode</h3>
+        <p>Rapid Serial Visual Presentation (RSVP) displays one word at a time in large text, aligned on its <strong>Optimal Recognition Point (ORP)</strong> — the character your eye naturally focuses on — making it easier to read faster without moving your eyes.</p>
+        <p>Use the WPM slider to set your reading speed. A good starting point is 250–300 WPM; experienced readers often reach 400–600 WPM.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: RSVP mode">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16M12 4l8 8-8 8"/></svg>
+          <span>Screenshot: RSVP mode with single word displayed</span>
+        </div>
+
+        <h3>Switching Modes</h3>
+        <p>Use the <span class="badge">Page</span> / <span class="badge">RSVP</span> segmented control in the toolbar to switch modes. Your word position is carried across so you continue from exactly where you left off.</p>
+      </section>
+
+      <!-- Text-to-Speech -->
+      <section id="text-to-speech">
+        <h2><i class="icon">🔊</i> Text-to-Speech</h2>
+        <p>BlazeBooks can read aloud in both Page and RSVP modes using your device's built-in voices.</p>
+        <ul>
+          <li>Tap the <strong>speaker icon</strong> in the toolbar to enable TTS</li>
+          <li>In <strong>Page mode</strong>, the currently spoken word is highlighted as playback progresses</li>
+          <li>In <strong>RSVP mode</strong>, TTS advances the word display in sync with speech</li>
+        </ul>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: TTS with word highlighting">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <span>Screenshot: TTS enabled with word highlighting in Page mode</span>
+        </div>
+
+        <h3>Choosing a Voice</h3>
+        <p>Tap the voice name shown below the TTS controls to open the voice picker. Browse and preview all voices installed on your device, grouped by language.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Voice picker sheet">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+          <span>Screenshot: Voice picker sheet</span>
+        </div>
+
+        <div class="tip"><strong>Tip:</strong> For the best voice selection, go to <strong>Settings → Accessibility → Spoken Content → Voices</strong> on your iPhone and download high-quality Enhanced voices.</div>
+      </section>
+
+      <!-- Speed Controls -->
+      <section id="speed-controls">
+        <h2><i class="icon">⚡</i> Speed Controls</h2>
+
+        <h3>WPM Slider</h3>
+        <p>The words-per-minute slider controls reading speed in both RSVP mode (word advance rate) and TTS mode (speech rate). Drag the slider or tap <strong>–</strong> / <strong>+</strong> to adjust. Changes take effect immediately.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: WPM slider">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="12" x2="20" y2="12"/><circle cx="14" cy="12" r="3"/></svg>
+          <span>Screenshot: WPM slider</span>
+        </div>
+
+        <h3>Speed Cap</h3>
+        <p>Some voices have a natural maximum rate beyond which speech quality degrades. When your WPM setting exceeds a voice's comfort zone, a <strong>Speed Cap</strong> banner appears. BlazeBooks plays at the highest quality rate for that voice rather than forcing distorted audio.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Speed cap banner">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Screenshot: Speed cap banner</span>
+        </div>
+      </section>
+
+      <!-- Navigation -->
+      <section id="navigation">
+        <h2><i class="icon">🧭</i> Navigation</h2>
+
+        <h3>Chapter Navigation</h3>
+        <p>While reading, use the <span class="badge">‹</span> and <span class="badge">›</span> arrows to move between chapters. The chapter title is shown at the top of the reading view.</p>
+
+        <h3>Table of Contents</h3>
+        <p>Tap the <strong>list icon</strong> in the toolbar to open the Table of Contents. Tap any chapter to jump directly to it.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Table of contents">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Screenshot: Table of contents sheet</span>
+        </div>
+
+        <h3>Progress Bar</h3>
+        <p>A thin progress bar beneath the toolbar shows your position within the current chapter. Your reading position is automatically saved as you read and restored when you reopen the book.</p>
+      </section>
+
+      <!-- Discover -->
+      <section id="discover">
+        <h2><i class="icon">🔍</i> Discover Free Books</h2>
+        <p>The <strong>Discover</strong> tab gives access to over 70,000 free books from <a href="https://www.gutenberg.org" style="color: var(--beam);">Project Gutenberg</a> via the Gutendex API.</p>
+        <ul>
+          <li><strong>Browse by genre</strong> — tap a genre card to see curated titles</li>
+          <li><strong>Search</strong> — use the search bar to find books by title or author</li>
+        </ul>
+        <p>Tap any result to see the book's description, author, and language. Tap <strong>Download</strong> to import it directly into your library. Books already in your library show an <span class="badge">In Library</span> badge so you don't download duplicates.</p>
+
+        <div class="screenshot" aria-label="Screenshot placeholder: Book detail sheet in Discover">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Screenshot: Book detail sheet in Discover</span>
+        </div>
+      </section>
+
+      <!-- iCloud -->
+      <section id="icloud">
+        <h2><i class="icon">☁️</i> iCloud Sync</h2>
+        <p>BlazeBooks uses iCloud to sync your library, shelves, and reading positions across all your devices signed into the same Apple ID. Sync happens automatically in the background — no setup required.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>BlazeBooks v1.0 &nbsp;·&nbsp; <a href="https://github.com/iaingblack/blaze-books">GitHub</a></p>
+  </footer>
+
+</body>
+</html>
