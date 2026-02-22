@@ -8,6 +8,7 @@ import SwiftData
 /// author. When searching, the genre grid is replaced with search results.
 struct DiscoveryView: View {
     @Environment(GutendexService.self) private var gutendexService
+    @Environment(GutenbergOPDSService.self) private var opdsService
     @Environment(BookDownloadService.self) private var downloadService
     @Environment(\.modelContext) private var modelContext
     @Query private var libraryBooks: [Book]
@@ -273,12 +274,12 @@ struct DiscoveryView: View {
         searchFailed = false
         defer { isSearching = false }
 
-        let response = await gutendexService.searchBooks(query: query)
+        let result = await opdsService.searchBooks(query: query)
         guard !Task.isCancelled else { return }
 
-        if let response {
-            searchResults = response.results.filter { $0.epubURL != nil }
-            nextPageURL = response.next
+        if let result {
+            searchResults = result.books
+            nextPageURL = result.nextPageURL
             hasSearched = true
         } else {
             searchFailed = true
@@ -292,13 +293,12 @@ struct DiscoveryView: View {
             isSearching = true
             defer { isSearching = false }
 
-            let response = await gutendexService.fetchNextPage(from: url)
+            let result = await opdsService.fetchNextPage(from: url)
             guard !Task.isCancelled else { return }
 
-            if let response {
-                let newBooks = response.results.filter { $0.epubURL != nil }
-                searchResults.append(contentsOf: newBooks)
-                nextPageURL = response.next
+            if let result {
+                searchResults.append(contentsOf: result.books)
+                nextPageURL = result.nextPageURL
             }
         }
     }

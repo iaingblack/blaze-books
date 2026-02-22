@@ -38,6 +38,23 @@ struct GutendexBook: Codable, Identifiable {
         return URL(string: urlString)
     }
 
+    /// Creates a GutendexBook from OPDS search data using known PG URL patterns.
+    init(id: Int, title: String, authorName: String) {
+        self.id = id
+        self.title = title
+        self.authors = [GutendexPerson(name: authorName, birthYear: nil, deathYear: nil)]
+        self.subjects = []
+        self.bookshelves = []
+        self.languages = ["en"]
+        self.copyright = false
+        self.mediaType = "Text"
+        self.downloadCount = 0
+        self.formats = [
+            "application/epub+zip": "https://www.gutenberg.org/ebooks/\(id).epub3.images",
+            "image/jpeg": "https://www.gutenberg.org/cache/epub/\(id)/pg\(id).cover.medium.jpg"
+        ]
+    }
+
     /// Primary author name (formatted as "First Last" from Gutenberg's "Last, First")
     var primaryAuthor: String {
         guard let author = authors.first else { return "Unknown Author" }

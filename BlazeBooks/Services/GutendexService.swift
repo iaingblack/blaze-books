@@ -16,6 +16,9 @@ final class GutendexService {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
+        config.httpAdditionalHeaders = [
+            "User-Agent": "BlazeBooks/1.0 (iOS; Gutendex API client)"
+        ]
         return URLSession(configuration: config)
     }()
 

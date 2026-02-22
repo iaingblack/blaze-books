@@ -121,54 +121,63 @@ struct BookDetailSheet: View {
 
     // MARK: - Info Section
 
+    private var hasInfoDetails: Bool {
+        !book.subjects.isEmpty || !book.bookshelves.isEmpty || book.downloadCount > 0
+    }
+
+    @ViewBuilder
     private var infoSection: some View {
-        VStack(spacing: 8) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showInfo.toggle()
+        if hasInfoDetails {
+            VStack(spacing: 8) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showInfo.toggle()
+                    }
+                } label: {
+                    Label(
+                        showInfo ? "Hide Details" : "More Info",
+                        systemImage: showInfo ? "chevron.up" : "info.circle"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.blue)
                 }
-            } label: {
-                Label(
-                    showInfo ? "Hide Details" : "More Info",
-                    systemImage: showInfo ? "chevron.up" : "info.circle"
-                )
-                .font(.subheadline)
-                .foregroundStyle(.blue)
-            }
 
-            if showInfo {
-                VStack(alignment: .leading, spacing: 8) {
-                    if !book.subjects.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Subjects")
+                if showInfo {
+                    VStack(alignment: .leading, spacing: 8) {
+                        if !book.subjects.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Subjects")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.secondary)
+                                Text(book.subjects.joined(separator: ", "))
+                                    .font(.caption)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+
+                        if !book.bookshelves.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Bookshelves")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.secondary)
+                                Text(book.bookshelves.joined(separator: ", "))
+                                    .font(.caption)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+
+                        if book.downloadCount > 0 {
+                            Text("Downloads: \(book.downloadCount.formatted())")
                                 .font(.caption)
-                                .fontWeight(.semibold)
                                 .foregroundStyle(.secondary)
-                            Text(book.subjects.joined(separator: ", "))
-                                .font(.caption)
-                                .foregroundStyle(.primary)
                         }
                     }
-
-                    if !book.bookshelves.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Bookshelves")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
-                            Text(book.bookshelves.joined(separator: ", "))
-                                .font(.caption)
-                                .foregroundStyle(.primary)
-                        }
-                    }
-
-                    Text("Downloads: \(book.downloadCount.formatted())")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 24)
-                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
