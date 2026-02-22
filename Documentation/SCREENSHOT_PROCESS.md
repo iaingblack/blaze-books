@@ -1,8 +1,8 @@
 # Screenshot Automation Process
 
-## What we're doing
-Capturing real simulator screenshots for each placeholder in `Documentation/website/index.html`,
-then replacing the SVG placeholders with `<img>` tags pointing to the real screenshots.
+## Current state
+7 screenshots are live in `index.html`. Still needed (no placeholder in HTML, just missing content):
+- `page-mode.png`, `tts-highlighting.png`, `voice-picker.png`, `wpm-slider.png`, `table-of-contents.png`
 
 ## Branch
 `automated-screenshots`
@@ -14,73 +14,81 @@ then replacing the SVG placeholders with `<img>` tags pointing to the real scree
 ## How automated clicks work
 Clicks are sent by running shell scripts **inside Terminal.app** (which has Accessibility permission):
 ```bash
-osascript -e 'tell application "Terminal" to do script "/tmp/script.sh"'
+osascript -e 'tell application "Terminal" to do script "..." in window 1'
 ```
-`cliclick` is used inside those scripts and inherits Terminal's Accessibility trust.
+Use `in window 1` to run in an **existing** Terminal window. Opening a new window can cover the Simulator.
+
+## CRITICAL: cliclick syntax
+- `cliclick c:x,y` — **LEFT CLICK** at screen coordinates ✅
+- `cliclick t:text` — **TYPES TEXT** (not a click!) ❌ was the cause of many hours of lost effort
+- `cliclick kp:esc` — press Escape key
+- `cliclick p` — print current mouse position (useful for debugging)
+
+## CRITICAL: Activate Simulator before clicking
+The Simulator sits **behind VSCode/Cursor**. Without activation, clicks go to the wrong window:
+```bash
+osascript -e 'tell application "Simulator" to activate' 2>/dev/null
+sleep 0.4
+cliclick c:648,242
+```
+
+## CRITICAL: Don't use these inside Terminal scripts
+- `screencapture` — triggers macOS Screen Recording permission dialog, blocks Simulator
+- `tell application "System Events"` — triggers System Events permission dialog
+- Only use `xcrun simctl io <id> screenshot <path>` for capturing iOS screenshots from scripts
 
 ## Simulator window → macOS screen coordinate mapping
 - Quartz window bounds: **X=555, Y=38, Width=402, Height=851**
 - iPhone 16e logical screen: 390×844 pt
-- Horizontal bezel: (402-390)/2 = 6 pt → content starts at screen X = **561**
-- Vertical bezel: (851-844)/2 ≈ 3.5 pt → content starts at screen Y ≈ **42**
 - Formula: `screen_x = 561 + ios_x`, `screen_y = 42 + ios_y`
 
 ## Confirmed working coordinates (iOS logical points)
-| Element | iOS (x, y) | Screen (x, y) | Status |
+| Element | iOS (x, y) | Screen (x, y) | Notes |
 |---|---|---|---|
-| Great Gatsby book cover | (87, 200) | (648, 242) | ✅ opens book |
-| Play/pause button | (195, 772) | (756, 814) | ✅ starts/stops RSVP |
-| Long-press book | (87, 200) | (648, 242) | ✅ context menu |
+| Great Gatsby book cover | (87, 200) | (648, 242) | opens book |
+| Play/pause button | (195, 772) | (756, 814) | starts/stops RSVP |
+| Long-press book | (87, 200) | (648, 242) | hold for context menu |
 
-## Still failing
-| Element | iOS (x, y) tried | Notes |
+## Nav bar coordinates (not yet confirmed working)
+| Element | iOS (x, y) | Screen (x, y) |
 |---|---|---|
-| Page/RSVP segmented control | (155-163, 65-85) | Multiple attempts, never switches mode |
-| TOC icon (☰) | (75, 75) | No effect observed |
-| TTS toggle (speaker icon) | (42, 772) | Unknown - may work, screenshots didn't show change |
+| TOC icon (list.bullet) | (87, 72) | (648, 114) |
+| Page mode button | (143, 72) | (704, 114) |
+| RSVP mode button | (223, 72) | (784, 114) |
 
-## Suspected issue with nav bar taps
-Nav bar taps at ~y=65-85 do not register. Possible causes:
-1. The segmented control Picker in SwiftUI nav bar principal has a different actual hit area
-2. Coordinate offset is wrong — the Simulator window may have a title bar that shifts content down
-3. While RSVP is playing, some touch lock may be in place
-4. The nav bar chrome in `NavigationStack` responds differently to simulated clicks
+These have never been confirmed because all previous attempts used the wrong `t:` syntax instead of `c:`.
+With the correct `c:x,y` syntax and Simulator activated first, these should work.
 
-## Screenshots captured (ready to use in HTML)
-| File | Content | Quality |
-|---|---|---|
-| `library-view.png` | Library with 2 books | ✅ Good |
-| `library-context-menu.png` | Long-press context menu | ✅ Good |
-| `discover-tab.png` | Discover genre grid | ✅ Good |
-| `discover-search.png` | Search results | ✅ Good |
-| `discover-book-detail.png` | Book detail sheet | ✅ Good |
-| `import-button.png` | Library with + button visible | ✅ Good |
-| `rsvp-mode.png` | RSVP mode, word "The", ORP marker | ✅ Good |
-| `page-mode.png` | Still shows RSVP — **needs retake** | ❌ Wrong |
-| `tts-highlighting.png` | Still shows RSVP — **needs retake** | ❌ Wrong |
-| `voice-picker.png` | Still shows RSVP — **needs retake** | ❌ Wrong |
-| `wpm-slider.png` | Still shows RSVP — **needs retake** | ❌ Wrong |
-| `table-of-contents.png` | Still shows RSVP — **needs retake** | ❌ Wrong |
+## ReadingView controls bar layout (for coordinate reference)
+```
+HStack(spacing: 20) padding(.horizontal, 20):
+  TTS toggle    frame(44,44)  ios x ≈ 42
+  Voice picker  frame(44,44)  ios x ≈ 94
+  Punctuation   frame(44,44)  ios x ≈ 146
+  [Spacer]
+  Play/Pause    ~50pt icon    ios x ≈ 195  (center of 390pt screen)
+  [Spacer]
+  WPM button    frame(70,44)  ios x ≈ 291
+  Clear (44pt)               ios x ≈ 349
+All at ios y ≈ 772
+```
 
-## Next session TODO
-1. **Debug nav bar tap issue** — try stopping RSVP first (tap pause), then switch mode
-2. OR: use `xcrun simctl` URL scheme / XCTest to switch mode programmatically
-3. Once in Page mode, capture: page-mode, tts-highlighting, voice-picker, wpm-slider, table-of-contents
-4. **Update index.html** — replace all `<div class="screenshot">` SVG placeholders with `<img src="screenshots/xxx.png">`
-5. Consider adding a speed-cap-banner screenshot (requires high WPM + TTS on a voice that caps)
-
-## HTML placeholder → filename mapping
-| HTML placeholder text | Target filename |
+## Screenshots in use (index.html)
+| File | Content |
 |---|---|
-| Import button & file picker | `import-button.png` ✅ |
-| Discover tab with genre grid | `discover-tab.png` ✅ |
-| Library with Continue Reading strip and book grid | `library-view.png` ✅ |
-| Long-press context menu | `library-context-menu.png` ✅ |
-| Page mode reading view | `page-mode.png` ❌ needs retake |
-| RSVP mode with single word | `rsvp-mode.png` ✅ |
-| TTS enabled with word highlighting | `tts-highlighting.png` ❌ needs retake |
-| Voice picker sheet | `voice-picker.png` ❌ needs retake |
-| WPM slider | `wpm-slider.png` ❌ needs retake |
-| Speed cap banner | `speed-cap-banner.png` ❌ not yet captured |
-| Table of contents sheet | `table-of-contents.png` ❌ needs retake |
-| Book detail sheet in Discover | `discover-book-detail.png` ✅ |
+| `library-view.png` | Library with 2 books |
+| `library-context-menu.png` | Long-press context menu |
+| `discover-tab.png` | Discover genre grid |
+| `discover-search.png` | Search results |
+| `discover-book-detail.png` | Book detail sheet |
+| `import-button.png` | Library with + button visible |
+| `rsvp-mode.png` | RSVP mode, word with ORP marker |
+
+## Still needed (no placeholder currently — add back to HTML when captured)
+| File | Where in HTML |
+|---|---|
+| `page-mode.png` | Reading Modes → Page Mode section |
+| `tts-highlighting.png` | Text-to-Speech section |
+| `voice-picker.png` | Text-to-Speech → Choosing a Voice |
+| `wpm-slider.png` | Speed Controls → WPM Slider |
+| `table-of-contents.png` | Navigation → Table of Contents |
