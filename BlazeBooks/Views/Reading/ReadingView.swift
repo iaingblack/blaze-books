@@ -438,10 +438,16 @@ struct ReadingView: View {
                     coordinator.play()
                 }
             } label: {
-                Image(systemName: coordinator.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundStyle(Color.accentColor)
+                if coordinator.isTTSPreparing {
+                    ProgressView()
+                        .frame(width: 50, height: 50)
+                } else {
+                    Image(systemName: coordinator.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 50))
+                        .foregroundStyle(Color.accentColor)
+                }
             }
+            .disabled(coordinator.isTTSPreparing)
 
             Spacer()
 

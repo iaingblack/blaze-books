@@ -21,6 +21,9 @@ final class TTSService {
 
     /// Whether the synthesizer is currently speaking.
     var isSpeaking: Bool = false
+    /// True from when speak() is called until the first word boundary fires.
+    /// UI can show a spinner during the AVSpeechSynthesizer cold-start delay.
+    var isPreparing: Bool = false
     /// The current global word index across all sentences in the chapter.
     var currentGlobalWordIndex: Int = 0
 
@@ -195,25 +198,36 @@ final class TTSService {
         synthesizer?.delegate = delegateHandler
 
         isSpeaking = true
-        speakNextSentence()
+        isPreparing = true
+        // Defer speak to the next run loop pass so SwiftUI can render
+        // the preparing state before synthesizer.speak() potentially
+        // blocks the main thread during cold start.
+        DispatchQueue.main.async { [self] in
+            speakNextSentence()
+        }
     }
 
     /// Pauses speech at the current word. Keeps the synthesizer alive
     /// (pause is safe; only stop corrupts the synthesizer).
     func pause() {
-        synthesizer?.pauseSpeaking(at: .immediate)
+        // Defer to escape any Swift Concurrent context (e.g. SwiftUI Button on MainActor)
+        // to avoid unsafeForcedSync when AVSpeechSynthesizer accesses the main thread internally.
+        DispatchQueue.main.async { [self] in
+            synthesizer?.pauseSpeaking(at: .immediate)
+        }
         isSpeaking = false
     }
 
+    /// Whether the synthesizer exists and can be resumed (vs needing a fresh speak() call).
+    var canResume: Bool { synthesizer != nil }
+
     /// Resumes speech from where it was paused.
-    /// - Returns: `true` if the synthesizer existed and successfully continued speaking.
-    @discardableResult
-    func resume() -> Bool {
-        if synthesizer?.continueSpeaking() == true {
-            isSpeaking = true
-            return true
+    func resume() {
+        isSpeaking = true
+        // Defer to escape any Swift Concurrent context (same reason as pause).
+        DispatchQueue.main.async { [self] in
+            synthesizer?.continueSpeaking()
         }
-        return false
     }
 
     /// Stops speech and destroys the synthesizer instance.
@@ -221,10 +235,15 @@ final class TTSService {
     /// Delegate is removed before stopping to prevent async didCancel callbacks
     /// from interfering with a subsequent speak() call.
     func stop() {
+        let synth = synthesizer
         synthesizer?.delegate = nil
-        synthesizer?.stopSpeaking(at: .immediate)
         synthesizer = nil
         isSpeaking = false
+        isPreparing = false
+        // Defer stopSpeaking to escape any Swift Concurrent context.
+        DispatchQueue.main.async {
+            synth?.stopSpeaking(at: .immediate)
+        }
     }
 
     /// Sets the voice identifier to use for subsequent utterances.
@@ -273,9 +292,10 @@ final class TTSService {
         activeSentenceWordOffset = sentence.wordOffset
         let utterance = AVSpeechUtterance(string: sentence.text)
 
-        // Configure voice
-        if let voiceId = selectedVoiceIdentifier {
-            utterance.voice = AVSpeechSynthesisVoice(identifier: voiceId)
+        // Configure voice — fall back to en-US if the selected voice was uninstalled
+        if let voiceId = selectedVoiceIdentifier,
+           let voice = AVSpeechSynthesisVoice(identifier: voiceId) {
+            utterance.voice = voice
         } else {
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         }
@@ -365,11 +385,17 @@ final class TTSService {
         ) {
             guard let owner = owner else { return }
 
+            // Capture callback parameters (safe to read on any thread) and defer
+            // all owner access to the main queue to avoid background-thread access
+            // to @Observable state. Using GCD instead of Task { @MainActor in }
+            // avoids creating a Swift Concurrent context that conflicts with
+            // AVSpeechSynthesizer's internal main-thread synchronization.
             let sentenceText = utterance.speechString
-            let localWordIndex = owner.wordIndexFromCharRange(characterRange, in: sentenceText)
-            let globalIndex = owner.activeSentenceWordOffset + localWordIndex
-
-            Task { @MainActor in
+            let range = characterRange
+            DispatchQueue.main.async {
+                owner.isPreparing = false
+                let localWordIndex = owner.wordIndexFromCharRange(range, in: sentenceText)
+                let globalIndex = owner.activeSentenceWordOffset + localWordIndex
                 owner.currentGlobalWordIndex = globalIndex
                 owner.onWordBoundary?(globalIndex)
             }
@@ -381,7 +407,13 @@ final class TTSService {
         ) {
             guard let owner = owner else { return }
 
-            Task { @MainActor in
+            // GCD dispatch instead of Task { @MainActor in } — critical fix.
+            // speakNextSentence() calls synthesizer.speak() which internally
+            // does a synchronous main-thread access. Inside a Swift async Task
+            // on MainActor, this triggers "unsafeForcedSync called from Swift
+            // Concurrent context" and silently fails. GCD dispatch avoids this
+            // because it's a plain synchronous main-queue block, not an async context.
+            DispatchQueue.main.async {
                 owner.currentSentenceIndex += 1
                 if owner.currentSentenceIndex < owner.sentenceQueue.count {
                     owner.speakNextSentence()
@@ -398,8 +430,8 @@ final class TTSService {
         ) {
             // Note: TTSService.stop() nils the delegate BEFORE calling stopSpeaking,
             // so this only fires on unexpected cancellations (voice errors, system interruption).
-            Task { @MainActor in
-                guard let owner = self.owner else { return }
+            DispatchQueue.main.async { [weak self] in
+                guard let owner = self?.owner else { return }
                 owner.isSpeaking = false
                 owner.onError?()
             }

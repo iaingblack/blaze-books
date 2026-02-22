@@ -32,6 +32,8 @@ final class ReadingCoordinator {
     var currentWord: ORPWord?
     /// Whether reading is active (either Timer or TTS mode).
     var isPlaying: Bool = false
+    /// True while TTS is starting up (cold-start delay before first word).
+    var isTTSPreparing: Bool = false
     /// Whether playback has been active at least once since the chapter loaded.
     /// Used to keep the word highlight visible after pausing.
     var hasPlayedInChapter: Bool = false
@@ -174,6 +176,7 @@ final class ReadingCoordinator {
     ///   In RSVP mode this drives the word display; in page mode it drives word highlighting.
     func play() {
         if isTTSEnabled {
+            isTTSPreparing = true
             ttsService.speak(fromWordIndex: currentWordIndex)
         } else {
             // Timer drives word advancement (RSVP display or page mode highlighting)
@@ -205,9 +208,12 @@ final class ReadingCoordinator {
     /// - **TTS off:** Backs up 4 words for context recovery (locked decision: 3-5 word range).
     func resume() {
         if isTTSEnabled {
-            if !ttsService.resume() {
+            if ttsService.canResume {
+                ttsService.resume()
+            } else {
                 // Synthesizer doesn't exist (e.g. cold start with restored position) —
                 // fall back to creating a new one from the current word index.
+                isTTSPreparing = true
                 ttsService.speak(fromWordIndex: currentWordIndex)
             }
         } else {
@@ -386,6 +392,7 @@ final class ReadingCoordinator {
     private func handleTTSError() {
         stopRSVPObservation()
         isPlaying = false
+        isTTSPreparing = false
     }
 
     /// Handles TTS word-boundary callbacks by updating RSVP display.
@@ -395,6 +402,7 @@ final class ReadingCoordinator {
     ///
     /// - Parameter globalIndex: The global word index reported by TTSService.
     private func handleTTSWordBoundary(_ globalIndex: Int) {
+        isTTSPreparing = false
         currentWordIndex = globalIndex
         currentWord = rsvpEngine.word(at: globalIndex)
     }
