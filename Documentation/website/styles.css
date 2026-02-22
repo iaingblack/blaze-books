@@ -53,9 +53,9 @@ body {
 }
 
 .site-header img.app-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 96px;
+  height: 96px;
+  border-radius: 6px;
 }
 
 .site-header .app-name {

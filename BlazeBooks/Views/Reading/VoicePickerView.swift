@@ -53,14 +53,23 @@ struct VoicePickerView: View {
                                 .foregroundStyle(.blue)
                         }
 
-                        Text("After downloading, return here and new voices will appear automatically.")
+                        Text("In Settings, go to:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("Accessibility → Read & Speak → Voices → English - Voice")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        Text("Choose a voice and tap the download icon next to it. After downloading, return here and new voices will appear automatically.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
                         Button {
                             voiceManager.openVoiceSettings()
                         } label: {
-                            Label("Open Voice Settings", systemImage: "gear")
+                            Label("Open Accessibility Settings", systemImage: "gear")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)

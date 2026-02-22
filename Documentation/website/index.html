@@ -10,7 +10,7 @@
 
   <!-- ── Header ── -->
   <header class="site-header">
-    <img class="app-icon" src="screenshots/app-icon.png" alt="BlazeBooks icon" />
+    <img class="app-icon" src="images/icon-256.png" alt="BlazeBooks icon" />
     <span class="app-name"><span>Blaze</span>Books</span>
   </header>
 
@@ -46,17 +46,17 @@
         <h3>Import from Files</h3>
         <p>Tap the <strong>+</strong> button in the Library to open the file picker. Browse to any <code>.epub</code> file stored in Files, iCloud Drive, or another document provider and select it. The book will be imported and appear in your library straight away.</p>
 
-        <div class="screenshot">
-          <img src="screenshots/import-button.png" alt="BlazeBooks library showing the + import button in the navigation bar" />
+        <div class="images">
+          <img src="images/import-button.png" alt="BlazeBooks library showing the + import button in the navigation bar" />
         </div>
 
         <div class="tip"><strong>Tip:</strong> If your EPUB has many chapters, BlazeBooks imports the metadata immediately and extracts the full text in the background. A progress indicator on the book cover shows extraction status.</div>
 
         <h3>Download from Discover</h3>
-        <p>Open the <strong>Discover</strong> tab to browse thousands of free public domain books from Project Gutenberg. Browse by genre or search by title or author, then tap a book to see its details and tap <strong>Download</strong>.</p>
+        <p>Open the <strong>Discover</strong> tab (world icon) to browse thousands of free public domain books from Project Gutenberg. Browse by genre or search by title or author, then tap a book to see its details and tap <strong>Download</strong>.</p>
 
-        <div class="screenshot">
-          <img src="screenshots/discover-tab.png" alt="Discover tab showing genre grid for browsing free books" />
+        <div class="images">
+          <img src="images/discover-book-detail.png" alt="Discover tab showing genre grid for browsing free books" />
         </div>
       </section>
 
@@ -70,18 +70,17 @@
           <li><strong>All Books</strong> — a full grid of every imported book, sortable by Title, Author, Recently Read, or Date Added</li>
         </ul>
 
-        <div class="screenshot">
-          <img src="screenshots/library-view.png" alt="Library showing Continue Reading strip and All Books grid" />
-        </div>
-
         <h3>Organising Books</h3>
         <p><strong>Long-press</strong> any book cover to open a context menu with options to add or remove from a shelf, or delete the book from your library.</p>
 
         <h3>Creating Shelves</h3>
-        <p>Tap the shelf icon in the toolbar to create a new shelf. Give it a name — e.g. <em>Science Fiction</em> or <em>Reading List</em> — and books can be assigned via the long-press menu.</p>
-
-        <div class="screenshot">
-          <img src="screenshots/library-context-menu.png" alt="Long-press context menu on a book cover showing shelf and delete options" />
+        <p>Tap the shelf icon in the toolbar to create a new shelf. Give it a name — e.g. <em>Science Fiction</em> or <em>Reading List</em><</p>
+        <div class="images">
+          <img src="images/library-create-shelf.png" alt="Long-press context menu on a book cover showing shelf and delete options" />
+        </div>
+        <p>Books can be assigned via the long-press menu.</p>
+        <div class="images">
+          <img src="images/library-context-menu.png" alt="Long-press context menu on a book cover showing shelf and delete options" />
         </div>
       </section>
 
@@ -92,13 +91,16 @@
 
         <h3>Page Mode</h3>
         <p>The default reading experience. Text is displayed as a continuous scroll, chapter by chapter, with comfortable typography — just like any standard ebook reader.</p>
+        <div class="images">
+          <img src="images/page-mode.png" alt="Page mode displaying a continuous scroll of text" />
+        </div>
 
         <h3>RSVP Mode</h3>
         <p>Rapid Serial Visual Presentation (RSVP) displays one word at a time in large text, aligned on its <strong>Optimal Recognition Point (ORP)</strong> — the character your eye naturally focuses on — making it easier to read faster without moving your eyes.</p>
         <p>Use the WPM slider to set your reading speed. A good starting point is 250–300 WPM; experienced readers often reach 400–600 WPM.</p>
 
-        <div class="screenshot">
-          <img src="screenshots/rsvp-mode.png" alt="RSVP mode displaying a single word with the Optimal Recognition Point marker" />
+        <div class="images">
+          <img src="images/rsvp-mode.png" alt="RSVP mode displaying a single word with the Optimal Recognition Point marker" />
         </div>
 
         <h3>Switching Modes</h3>
@@ -118,7 +120,24 @@
         <h3>Choosing a Voice</h3>
         <p>Tap the voice name shown below the TTS controls to open the voice picker. Browse and preview all voices installed on your device, grouped by language.</p>
 
-        <div class="tip"><strong>Tip:</strong> For the best voice selection, go to <strong>Settings → Accessibility → Spoken Content → Voices</strong> on your iPhone and download high-quality Enhanced voices.</div>
+        <div class="tip">
+          <strong>Tip: Download enhanced voices for better quality.</strong> On your iPhone, open <strong>Settings</strong> and follow this path exactly:
+          <ol style="margin: 0.5em 0 0; padding-left: 1.4em;">
+            <li>Tap <strong>Accessibility</strong></li>
+            <li>Tap <strong>Read &amp; Speak</strong></li>
+            <li>Tap <strong>Voices</strong></li>
+            <li>Tap <strong>English</strong> (or your preferred language)</li>
+            <li>Tap the <strong>download icon ⬇</strong> next to any Enhanced or Premium voice</li>
+          </ol>
+          After downloading, return to BlazeBooks and the new voices will appear automatically in the voice picker.
+        </div>
+        <div class="images">
+          <img src="images/download-voices.png" alt="Long-press context menu on a book cover showing shelf and delete options" />
+        </div>
+        <p>After downloading, return to BlazeBooks and the new voices will appear automatically in the voice picker.</p>
+        <div class="images">
+          <img src="images/voice-selection.png" alt="Voice selection preview showing voices to choose in the app" />
+        </div>
       </section>
 
       <!-- Speed Controls -->
@@ -157,12 +176,9 @@
         </ul>
         <p>Tap any result to see the book's description, author, and language. Tap <strong>Download</strong> to import it directly into your library. Books already in your library show an <span class="badge">In Library</span> badge so you don't download duplicates.</p>
 
-        <div class="screenshot">
-          <img src="screenshots/discover-search.png" alt="Discover search results showing matching books by title or author" />
-        </div>
 
-        <div class="screenshot">
-          <img src="screenshots/discover-book-detail.png" alt="Book detail sheet in Discover showing description, author, and Download button" />
+        <div class="images">
+          <img src="images/download-book.png" alt="Book detail sheet in Discover showing description, author, and Download button" />
         </div>
       </section>
 
