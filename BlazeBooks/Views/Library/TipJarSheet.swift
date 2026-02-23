@@ -49,6 +49,15 @@ struct TipJarSheet: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .padding(.horizontal, 40)
+
+                    Button {
+                        Task { await tipJar.restorePurchases() }
+                    } label: {
+                        Text("Restore Purchases")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
                 } else {
                     ProgressView("Loading...")
                         .controlSize(.large)

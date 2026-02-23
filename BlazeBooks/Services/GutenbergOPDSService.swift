@@ -66,7 +66,8 @@ final class GutenbergOPDSService {
         error = nil
         defer { isLoading = false }
 
-        guard let url = URL(string: nextURL) else { return nil }
+        guard let url = URL(string: nextURL),
+              URLValidator.isAllowed(url) else { return nil }
         return await fetchAndParse(url: url, cacheKey: nextURL)
     }
 
@@ -126,6 +127,7 @@ private class OPDSFeedParser: NSObject, XMLParserDelegate {
 
     func parse() -> [OPDSEntry] {
         let parser = XMLParser(data: data)
+        parser.shouldResolveExternalEntities = false
         parser.delegate = self
         parser.parse()
 
