@@ -250,7 +250,7 @@ final class EPUBImportService {
 
                 // Skip already-extracted chapters
                 guard chapter.text.isEmpty else {
-                    await onProgress(spineIndex + 1)
+                    await MainActor.run { onProgress(spineIndex + 1) }
                     continue
                 }
 
@@ -263,12 +263,12 @@ final class EPUBImportService {
                 chapter.text = parsed.text
                 chapter.wordCount = parsed.wordCount
 
-                await onProgress(spineIndex + 1)
+                await MainActor.run { onProgress(spineIndex + 1) }
             }
 
-            await onComplete()
+            await MainActor.run { onComplete() }
         } catch {
-            await onComplete()
+            await MainActor.run { onComplete() }
             #if DEBUG
             print("[EPUBImportService] Background extraction failed: \(error)")
             #endif
@@ -279,7 +279,7 @@ final class EPUBImportService {
 
     /// Maximum EPUB file size (100 MB). Files larger than this are rejected to prevent
     /// memory exhaustion when loading into Data.
-    private static let maxFileSize: UInt64 = 100 * 1024 * 1024
+    private nonisolated static let maxFileSize: UInt64 = 100 * 1024 * 1024
 
     /// Reads the file data and computes its SHA256 hash off the main thread in a single pass.
     /// If a pre-computed hash is provided, reads the file once and returns that hash.

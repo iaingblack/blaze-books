@@ -21,6 +21,7 @@ final class SyncMonitorService {
     /// Shows true briefly when remote changes are detected, then resets after a short delay.
     var isSyncing: Bool = false
 
+    @ObservationIgnored
     private nonisolated(unsafe) var notificationObserver: NSObjectProtocol?
 
     /// Start monitoring CloudKit sync events for the given container.

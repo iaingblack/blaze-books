@@ -26,6 +26,7 @@ final class TipJarService {
     /// True while a purchase is in progress.
     var isPurchasing: Bool = false
 
+    @ObservationIgnored
     private nonisolated(unsafe) var updateTask: Task<Void, Never>?
 
     /// Load product, check existing entitlements, and listen for transaction updates.
