@@ -368,6 +368,7 @@ final class ReadingCoordinator {
     }
 
     /// Sets the TTS voice and recalculates speed cap for the new voice.
+    /// If TTS is currently playing or paused, restarts speech with the new voice.
     ///
     /// - Parameter identifier: The AVSpeechSynthesisVoice identifier string.
     func setVoice(identifier: String) {
@@ -376,6 +377,17 @@ final class ReadingCoordinator {
 
         // Re-apply rate for new voice
         ttsService.setRate(speedCapService.wpmToRate(effectiveWPM, forVoice: identifier))
+
+        // Restart TTS if active — the old synthesizer's utterances have the previous voice baked in
+        if isTTSEnabled && (isPlaying || ttsService.canResume) {
+            let resumeIndex = currentWordIndex
+            let wasPlaying = isPlaying
+            ttsService.stop()
+            ttsService.prepareChapter(chapterTexts[currentChapterIndex])
+            if wasPlaying {
+                ttsService.speak(fromWordIndex: resumeIndex)
+            }
+        }
     }
 
     /// Updates the cached chapter text at the given index.
