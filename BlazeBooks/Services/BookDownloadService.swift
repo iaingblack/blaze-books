@@ -54,6 +54,11 @@ final class BookDownloadService {
             return
         }
 
+        guard URLValidator.isAllowed(epubURL) else {
+            activeDownloads[gutendexBook.id] = .failed("Untrusted download source")
+            return
+        }
+
         activeDownloads[gutendexBook.id] = .downloading
 
         do {
@@ -70,6 +75,21 @@ final class BookDownloadService {
                 try FileManager.default.removeItem(at: destinationURL)
             }
             try FileManager.default.moveItem(at: tempURL, to: destinationURL)
+
+            // 2b. Check file size (reject files > 100 MB)
+            let attrs = try FileManager.default.attributesOfItem(atPath: destinationURL.path)
+            let fileSize = attrs[.size] as? UInt64 ?? 0
+            if fileSize > 100 * 1024 * 1024 {
+                try? FileManager.default.removeItem(at: destinationURL)
+                activeDownloads[gutendexBook.id] = .failed("File too large (over 100 MB)")
+                return
+            }
+
+            // 2c. Apply data-at-rest encryption
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: destinationURL.path
+            )
 
             // 3. Import via existing pipeline
             activeDownloads[gutendexBook.id] = .importing

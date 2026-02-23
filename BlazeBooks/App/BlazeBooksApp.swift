@@ -43,13 +43,17 @@ struct BlazeBooksApp: App {
                 )
             } catch {
                 // Last resort: in-memory container to prevent crash on launch
-                modelContainer = try! ModelContainer(
-                    for: SchemaV4.Book.self,
-                    SchemaV4.Chapter.self,
-                    SchemaV4.ReadingPosition.self,
-                    SchemaV4.Shelf.self,
-                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-                )
+                do {
+                    modelContainer = try ModelContainer(
+                        for: SchemaV4.Book.self,
+                        SchemaV4.Chapter.self,
+                        SchemaV4.ReadingPosition.self,
+                        SchemaV4.Shelf.self,
+                        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                    )
+                } catch {
+                    fatalError("Failed to create even in-memory ModelContainer: \(error)")
+                }
             }
         }
 

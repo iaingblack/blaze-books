@@ -74,6 +74,21 @@ final class TipJarService {
         }
     }
 
+    /// Restores previous purchases by syncing with the App Store.
+    func restorePurchases() async {
+        do {
+            try await AppStore.sync()
+            for await result in Transaction.currentEntitlements {
+                if case .verified(let tx) = result, tx.productID == Self.productID {
+                    hasPurchased = true
+                    break
+                }
+            }
+        } catch {
+            // Sync failed — no action needed
+        }
+    }
+
     deinit {
         updateTask?.cancel()
     }

@@ -122,14 +122,10 @@ final class VoiceManager {
         previewSynthesizer?.speak(utterance)
     }
 
-    /// Opens iOS Settings deep-linking to Accessibility so users can navigate to
+    /// Opens iOS Settings so users can navigate to
     /// Accessibility → Read & Speak → Voices → English - Voice to download enhanced voices.
     func openVoiceSettings() {
-        // Try deep-linking directly to Accessibility settings; fall back to app settings.
-        let accessibilityURL = URL(string: "App-Prefs:ACCESSIBILITY")
-        let fallbackURL = URL(string: UIApplication.openSettingsURLString)
-        let target = accessibilityURL ?? fallbackURL
-        if let url = target {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
     }

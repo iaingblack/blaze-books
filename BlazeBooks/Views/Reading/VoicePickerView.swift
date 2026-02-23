@@ -69,7 +69,7 @@ struct VoicePickerView: View {
                         Button {
                             voiceManager.openVoiceSettings()
                         } label: {
-                            Label("Open Accessibility Settings", systemImage: "gear")
+                            Label("Open Settings", systemImage: "gear")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)

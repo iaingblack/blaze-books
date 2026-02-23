@@ -277,12 +277,22 @@ final class EPUBImportService {
 
     // MARK: - Private Helpers
 
+    /// Maximum EPUB file size (100 MB). Files larger than this are rejected to prevent
+    /// memory exhaustion when loading into Data.
+    private static let maxFileSize: UInt64 = 100 * 1024 * 1024
+
     /// Reads the file data and computes its SHA256 hash off the main thread in a single pass.
     /// If a pre-computed hash is provided, reads the file once and returns that hash.
+    /// Rejects files larger than 100 MB.
     private nonisolated static func readFileAndHash(
         at url: URL,
         precomputedHash: String?
     ) async throws -> (Data, String) {
+        let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
+        let fileSize = attrs[.size] as? UInt64 ?? 0
+        if fileSize > maxFileSize {
+            throw ImportError.parseFailed("File exceeds 100 MB size limit")
+        }
         let data = try Data(contentsOf: url)
         if let hash = precomputedHash {
             return (data, hash)

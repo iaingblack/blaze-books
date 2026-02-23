@@ -22,7 +22,8 @@ struct FileStorageManager {
     }
 
     static func localURL(for fileName: String) -> URL {
-        booksDirectory.appendingPathComponent(fileName)
+        let sanitized = sanitizeFileName(fileName)
+        return booksDirectory.appendingPathComponent(sanitized)
     }
 
     static func fileExists(_ fileName: String) -> Bool {
@@ -32,7 +33,22 @@ struct FileStorageManager {
 
     static func deleteFile(_ fileName: String) throws {
         let url = localURL(for: fileName)
+        // Verify the resolved path stays within booksDirectory
+        let resolved = url.standardizedFileURL.path
+        let booksPath = booksDirectory.standardizedFileURL.path
+        guard resolved.hasPrefix(booksPath) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
         try FileManager.default.removeItem(at: url)
+    }
+
+    /// Strips directory components and rejects path traversal patterns.
+    static func sanitizeFileName(_ name: String) -> String {
+        var sanitized = (name as NSString).lastPathComponent
+        if sanitized == ".." || sanitized == "." || sanitized.isEmpty {
+            sanitized = "unnamed.epub"
+        }
+        return sanitized
     }
 
     static func computeFileHash(at url: URL) throws -> String {

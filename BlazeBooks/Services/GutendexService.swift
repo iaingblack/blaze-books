@@ -141,7 +141,8 @@ final class GutendexService {
         error = nil
         defer { isLoading = false }
 
-        guard let url = URL(string: nextURL) else { return nil }
+        guard let url = URL(string: nextURL),
+              URLValidator.isAllowed(url) else { return nil }
 
         do {
             let (data, _) = try await session.data(from: url)
