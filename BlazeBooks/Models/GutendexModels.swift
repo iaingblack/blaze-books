@@ -1,5 +1,12 @@
 import Foundation
 
+private let allowedImageHosts: Set<String> = [
+    "www.gutenberg.org",
+    "gutenberg.org",
+    "gutendex.com",
+    "www.gutendex.com",
+]
+
 struct GutendexResponse: Codable {
     let count: Int
     let next: String?
@@ -32,10 +39,13 @@ struct GutendexBook: Codable, Identifiable {
         return URL(string: urlString)
     }
 
-    /// Cover image URL from formats dictionary
+    /// Cover image URL from formats dictionary, validated against allowed hosts
     var coverImageURL: URL? {
-        guard let urlString = formats["image/jpeg"] else { return nil }
-        return URL(string: urlString)
+        guard let urlString = formats["image/jpeg"],
+              let url = URL(string: urlString),
+              let host = url.host,
+              allowedImageHosts.contains(host) else { return nil }
+        return url
     }
 
     /// Creates a GutendexBook from OPDS search data using known PG URL patterns.
