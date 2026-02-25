@@ -26,6 +26,9 @@ final class TipJarService {
     /// True while a purchase is in progress.
     var isPurchasing: Bool = false
 
+    /// True if the product could not be loaded from the App Store.
+    var loadFailed: Bool = false
+
     @ObservationIgnored
     private nonisolated(unsafe) var updateTask: Task<Void, Never>?
 
@@ -33,8 +36,15 @@ final class TipJarService {
     func start() {
         Task {
             // Load the product
-            if let loaded = try? await Product.products(for: [Self.productID]).first {
-                product = loaded
+            do {
+                let products = try await Product.products(for: [Self.productID])
+                if let loaded = products.first {
+                    product = loaded
+                } else {
+                    loadFailed = true
+                }
+            } catch {
+                loadFailed = true
             }
 
             // Check existing entitlements

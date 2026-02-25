@@ -58,6 +58,13 @@ struct TipJarSheet: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.blue)
+                } else if tipJar.loadFailed {
+                    Text("Tips are not available right now.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    Button("Done") { dismiss() }
+                        .buttonStyle(.borderedProminent)
                 } else {
                     ProgressView("Loading...")
                         .controlSize(.large)
