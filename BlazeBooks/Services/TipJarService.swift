@@ -15,7 +15,7 @@ import StoreKit
 @MainActor
 @Observable
 final class TipJarService {
-    static let productID = "com.blazebooks.support"
+    static let productID = "BlazeBooksSupportStar"
 
     /// Whether the user has purchased the tip. Drives gold star visibility.
     var hasPurchased: Bool = false

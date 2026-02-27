@@ -385,9 +385,9 @@ struct ReadingView: View {
     /// Controls bar with TTS toggle, voice picker, play/pause, and WPM display.
     /// Used in both RSVP and page modes.
     private var readingControlsBar: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 12) {
             // Voice controls group (tighter spacing)
-            HStack(spacing: 8) {
+            HStack(spacing: 2) {
                 // TTS toggle
                 Button {
                     if !coordinator.isTTSEnabled {
@@ -401,7 +401,7 @@ struct ReadingView: View {
                     Image(systemName: coordinator.isTTSEnabled ? "speaker.wave.2.fill" : "speaker.slash")
                         .font(.title3)
                         .foregroundStyle(coordinator.isTTSEnabled ? Color.accentColor : .secondary)
-                        .frame(width: 44, height: 44)
+                        .frame(width: 40, height: 44)
                 }
 
                 // Voice picker button (only enabled when TTS is on)
@@ -411,7 +411,7 @@ struct ReadingView: View {
                     Image(systemName: "person.wave.2")
                         .font(.title3)
                         .foregroundStyle(coordinator.isTTSEnabled ? Color.primary : Color.secondary.opacity(0.5))
-                        .frame(width: 44, height: 44)
+                        .frame(width: 40, height: 44)
                 }
                 .disabled(!coordinator.isTTSEnabled)
 
@@ -422,7 +422,7 @@ struct ReadingView: View {
                     Image(systemName: coordinator.punctuationPausesEnabled ? "ellipsis.circle.fill" : "ellipsis.circle")
                         .font(.title3)
                         .foregroundStyle(coordinator.punctuationPausesEnabled ? Color.accentColor : .secondary)
-                        .frame(width: 44, height: 44)
+                        .frame(width: 40, height: 44)
                 }
             }
 
@@ -466,12 +466,8 @@ struct ReadingView: View {
                     .foregroundStyle(.secondary)
             }
             .frame(width: 70, height: 44)
-
-            // Placeholder for layout balance
-            Color.clear
-                .frame(width: 44, height: 44)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 12)
         .padding(.vertical, 12)
         .background(.bar)
     }

@@ -19,33 +19,34 @@ struct BookDetailSheet: View {
     @State private var showInfo = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Cover image
-                coverImage
-                    .padding(.top, 24)
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Cover image
+                    coverImage
+                        .padding(.top, 24)
 
-                // Title
-                Text(book.title)
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                    // Title
+                    Text(book.title)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
 
-                // Author
-                Text(book.primaryAuthor)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    // Author
+                    Text(book.primaryAuthor)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
 
-                // Info toggle
-                infoSection
-
-                // Download button area
-                downloadButton
-                    .padding(.top, 8)
-
-                Spacer(minLength: 24)
+                    // Info toggle
+                    infoSection
+                }
             }
+
+            // Download button pinned at bottom
+            downloadButton
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
         }
     }
 
