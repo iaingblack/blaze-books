@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AE6E70A02F56D7D600899EA4 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE6E709F2F56D7D600899EA4 /* StoreKit.framework */; };
 		AEA5421B2F48BF9B005912B1 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = A1000100 /* ReadiumShared */; };
 		AEA5421C2F48BF9B005912B1 /* ReadiumStreamer in Frameworks */ = {isa = PBXBuildFile; productRef = A1000101 /* ReadiumStreamer */; };
 		AEC70EC82F4A2538000099A5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEC70EC72F4A2538000099A5 /* Assets.xcassets */; };
@@ -14,6 +15,7 @@
 
 /* Begin PBXFileReference section */
 		A1000001 /* BlazeBooks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlazeBooks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE6E709F2F56D7D600899EA4 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		AEC70EC72F4A2538000099A5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -43,6 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE6E70A02F56D7D600899EA4 /* StoreKit.framework in Frameworks */,
 				AEA5421C2F48BF9B005912B1 /* ReadiumStreamer in Frameworks */,
 				AEA5421B2F48BF9B005912B1 /* ReadiumShared in Frameworks */,
 			);
@@ -56,6 +59,7 @@
 			children = (
 				AEC70EC72F4A2538000099A5 /* Assets.xcassets */,
 				A1000010 /* BlazeBooks */,
+				AE6E709E2F56D7D600899EA4 /* Frameworks */,
 				A1000040 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,6 +70,14 @@
 				A1000001 /* BlazeBooks.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AE6E709E2F56D7D600899EA4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AE6E709F2F56D7D600899EA4 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -285,7 +297,7 @@
 				CODE_SIGN_ENTITLEMENTS = BlazeBooks/BlazeBooks.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -319,7 +331,7 @@
 				CODE_SIGN_ENTITLEMENTS = BlazeBooks/BlazeBooks.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
